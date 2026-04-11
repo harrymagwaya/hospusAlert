@@ -1,7 +1,8 @@
 package com.shanalert.hospitalalert.entity;
 
 import com.shanalert.hospitalalert.model.HospitalStatus;
-import jakarta.mail.Address;
+import com.shanalert.hospitalalert.entity.Address;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

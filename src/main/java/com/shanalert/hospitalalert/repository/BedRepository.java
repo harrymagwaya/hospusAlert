@@ -6,6 +6,8 @@ import com.shanalert.hospitalalert.model.BedType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,6 +20,14 @@ public interface BedRepository extends JpaRepository<Bed, UUID> {
             UUID hospitalId,
             BedType bedType,
             BedStatus status
+    );
+
+    @Query("SELECT DISTINCT b.hospitalId FROM Bed b " +
+            "WHERE b.bedType = :type " +
+            "AND b.status = :status")
+    List<UUID> findHospitalIdsWithAvailableBeds(
+            @Param("type") BedType type,
+            @Param("status") BedStatus status
     );
 
     List<Bed> findByHospitalIdAndBedType(UUID hospitalId, BedType bedType);

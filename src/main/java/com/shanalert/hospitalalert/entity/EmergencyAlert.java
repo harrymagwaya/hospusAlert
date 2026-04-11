@@ -5,10 +5,18 @@ import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.BedType;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import java.sql.Types;
 import java.util.UUID;
 
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "emergency_alerts")
 public class EmergencyAlert extends Auditable {

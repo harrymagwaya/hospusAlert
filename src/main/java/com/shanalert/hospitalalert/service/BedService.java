@@ -30,10 +30,6 @@ public class BedService {
     @Autowired
     private BedMapper bedMapper;
 
-    /**
-     * Processes the BedCreateRequest to populate a specific ward.
-     * Logic: Checks existing count for the type and adds the difference.
-     */
     @Transactional
     public void createBeds(BedCreateRequest request) {
         // 1. Check how many beds of this type already exist for this hospital
@@ -127,5 +123,51 @@ public class BedService {
         Bed savedBed = bedRepository.save(bed);
 
         return bedMapper.toDto(savedBed, "Patient discharged. Bed is now available.");
+    }
+
+    public Bed getBedById(UUID bedId) {
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new EntityNotFoundException("Bed with ID " + bedId + " not found"));
+
+        // Convert entity to DTO using your mapper
+        return bed;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> getHospitalsWithAvailableCapacity(BedType neededBedType) {
+        log.info("Querying hospitals with available {} beds", neededBedType);
+
+        List<UUID> hospitalIds = bedRepository.findHospitalIdsWithAvailableBeds(
+                neededBedType,
+                BedStatus.AVAILABLE
+        );
+
+        if (hospitalIds.isEmpty()) {
+            log.warn("Zero hospitals found with available {} capacity", neededBedType);
+        }
+
+        return hospitalIds;
+    }
+
+    /**
+     * Internal method called by EmergencyAlertService to finalize a reservation
+     * after the patient selects a hospital from the narrowed-down list.
+     */
+    @Transactional
+    public BedResponse reserveBedForEmergency(UUID hospitalId, BedType type, UUID patientId) {
+        log.info("Attempting to lock a {} bed at hospital {} for patient {}", type, hospitalId, patientId);
+
+        // Using the 'findFirst' method we created earlier to get the next available slot
+        Bed availableBed = bedRepository.findFirstByHospitalIdAndBedTypeAndStatus(
+                        hospitalId, type, BedStatus.AVAILABLE)
+                .orElseThrow(() -> new RuntimeException("Sorry, the last available " + type + " bed was just taken."));
+
+        // Update the state
+        availableBed.setStatus(BedStatus.RESERVED);
+        availableBed.setOccupiedByPatientId(patientId);
+
+        Bed savedBed = bedRepository.save(availableBed);
+
+        return bedMapper.toDto(savedBed, "Bed successfully reserved for incoming emergency.");
     }
 }
