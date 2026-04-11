@@ -15,10 +15,7 @@ public class HospitalController {
 
     private final HospitalService hospitalService;
 
-    /**
-     * Returns the sorted list of hospitals directly.
-     * Spring converts the List to a JSON array automatically.
-     */
+
     @GetMapping("/discovery")
     public List<HospitalDiscoveryResponse> discoverHospitals(
             @RequestParam EmergencyType type,

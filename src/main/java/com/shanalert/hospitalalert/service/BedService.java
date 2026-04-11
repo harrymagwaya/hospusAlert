@@ -149,6 +149,12 @@ public class BedService {
         return hospitalIds;
     }
 
+    public String getBedNumberById(UUID bedId) {
+        return bedRepository.findById(bedId)
+                .map(Bed::getBedNumber) // Or whatever your field name is
+                .orElse("Unknown Bed");
+    }
+
     /**
      * Internal method called by EmergencyAlertService to finalize a reservation
      * after the patient selects a hospital from the narrowed-down list.

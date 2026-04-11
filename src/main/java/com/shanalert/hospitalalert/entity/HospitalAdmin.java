@@ -1,25 +1,16 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Gender;
 import com.shanalert.hospitalalert.model.UserRole;
-import com.shanalert.hospitalalert.model.UserStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
-@Builder
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "users")
-public class User {
+public class HospitalAdmin {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id", updatable = false, nullable = false)
     private UUID id;
 
     @Column(unique = true, nullable = false)
@@ -28,8 +19,8 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private String password; // Bcrypt encoded hash
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
 
     private String firstName;
     private String lastName;
@@ -37,10 +28,11 @@ public class User {
     @Column(length = 15)
     private String phoneNumber; // Critical for emergency SMS/Calls
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hospital_id", referencedColumnName = "id")
+    private Hospital hospital;
 
     @Enumerated(EnumType.STRING)
-    private UserStatus userStatus;
+    private UserRole role; //
 
 }
