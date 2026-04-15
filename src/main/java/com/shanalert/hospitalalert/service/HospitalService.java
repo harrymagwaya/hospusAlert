@@ -1,17 +1,22 @@
 package com.shanalert.hospitalalert.service;
 
 import com.shanalert.hospitalalert.dto.HospitalDiscoveryResponse;
+import com.shanalert.hospitalalert.dto.HospitalRequest;
+import com.shanalert.hospitalalert.dto.HospitalResponse;
 import com.shanalert.hospitalalert.entity.Address;
 import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.model.EmergencyType;
+import com.shanalert.hospitalalert.model.HospitalStatus;
 import com.shanalert.hospitalalert.repository.HospitalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -30,12 +35,67 @@ public class HospitalService {
     @Autowired
     private BedService bedService;
 
+    @Autowired
+    private AddressService addressService;
+
+
+
+    @Transactional(readOnly = true)
+    public Page<HospitalResponse> getAllHospitals(Pageable pageable) {
+        return hospitalRepository.findAll(pageable)
+                .map(this::mapToResponse);
+    }
+
+
+    @Transactional
+    public HospitalResponse addHospital(HospitalRequest request) {
+        log.info("Creating new hospital: {}", request.getName());
+
+        // 1. Save the Address using the AddressService
+        Address savedAddress = addressService.saveAddress(request.getAddress());
+
+        // 2. Map Request to Entity using Builder
+        Hospital hospital = Hospital.builder()
+                .name(request.getName())
+                .licenseNumber(request.getLicenseNumber())
+                .address(savedAddress)
+                .icuBedsAvailable(request.getIcuBedsAvailable())
+                .isEmergencyReady(request.getIsEmergencyReady())
+                .status(HospitalStatus.ACTIVE)
+                .build();
+
+        // 3. Save Hospital
+        Hospital savedHospital = hospitalRepository.save(hospital);
+
+        // 4. Return the Response DTO
+        return mapToResponse(savedHospital);
+    }
+
+    @Transactional
+    public HospitalResponse patchHospital(UUID id, HospitalRequest request) {
+        Hospital hospital = hospitalRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
+        if (request.getName() != null) hospital.setName(request.getName());
+        if (request.getIcuBedsAvailable() != null) hospital.setIcuBedsAvailable(request.getIcuBedsAvailable());
+        if (request.getIsEmergencyReady() != null) hospital.setIsEmergencyReady(request.getIsEmergencyReady());
+
+        // If the request contains address updates, delegate to AddressService
+        if (request.getAddress() != null) {
+            addressService.updateAddress(hospital.getAddress().getId(), request.getAddress());
+        }
+
+        return mapToResponse(hospitalRepository.save(hospital));
+    }
+
 
     public Hospital getById(UUID hospitalId){
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
         return hospital;
     }
+
+
 
     @Transactional(readOnly = true)
     public List<HospitalDiscoveryResponse> findHospitalsForEmergency(EmergencyType type, Double patientLat, Double patientLng) {
@@ -79,6 +139,19 @@ public class HospitalService {
                 .sorted(Comparator.comparing(HospitalDiscoveryResponse::estimatedMinutes,
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
+    }
+
+
+    // Helper to map Entity to Response
+    private HospitalResponse mapToResponse(Hospital hospital) {
+        return HospitalResponse.builder()
+                .id(hospital.getId())
+                .name(hospital.getName())
+                .licenseNumber(hospital.getLicenseNumber())
+                .status(hospital.getStatus())
+                .city(hospital.getAddress().getCity())
+                .isEmergencyReady(hospital.getIsEmergencyReady())
+                .build();
     }
 
 }

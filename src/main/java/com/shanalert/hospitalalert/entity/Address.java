@@ -24,6 +24,8 @@ public class Address extends Auditable {
     private String city;
     private String district; // e.g., Ntinda, Nakawa
 
+    private String country;
+
     // Critical for distance calculations
     private Double latitude;
     private Double longitude;
