@@ -39,4 +39,6 @@ public class UserRequest {
     private String phoneNumber;
 
     private Gender gender;
+
+    private
 }

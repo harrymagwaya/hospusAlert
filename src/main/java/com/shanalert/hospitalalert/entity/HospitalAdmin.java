@@ -3,9 +3,18 @@ package com.shanalert.hospitalalert.entity;
 import com.shanalert.hospitalalert.model.Gender;
 import com.shanalert.hospitalalert.model.UserRole;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class HospitalAdmin {
 

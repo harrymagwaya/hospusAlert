@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Gender;
 import com.shanalert.hospitalalert.model.UserRole;
 import com.shanalert.hospitalalert.model.UserStatus;
 import jakarta.persistence.*;
@@ -42,5 +43,7 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserStatus userStatus;
+
+    private Gender gender;
 
 }

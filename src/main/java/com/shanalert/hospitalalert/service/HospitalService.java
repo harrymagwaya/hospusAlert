@@ -5,10 +5,12 @@ import com.shanalert.hospitalalert.dto.HospitalRequest;
 import com.shanalert.hospitalalert.dto.HospitalResponse;
 import com.shanalert.hospitalalert.entity.Address;
 import com.shanalert.hospitalalert.entity.Hospital;
+import com.shanalert.hospitalalert.entity.HospitalAdmin;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.model.EmergencyType;
 import com.shanalert.hospitalalert.model.HospitalStatus;
+import com.shanalert.hospitalalert.repository.HospitalAdminRepository;
 import com.shanalert.hospitalalert.repository.HospitalRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +32,9 @@ public class HospitalService {
     private HospitalRepository hospitalRepository;
 
     @Autowired
+    private HospitalAdminRepository hospitalAdminRepository;
+
+    @Autowired
     private LocationService locationService;
 
     @Autowired
@@ -44,6 +49,33 @@ public class HospitalService {
     public Page<HospitalResponse> getAllHospitals(Pageable pageable) {
         return hospitalRepository.findAll(pageable)
                 .map(this::mapToResponse);
+    }
+
+
+    @Transactional(readOnly = true)
+    public HospitalResponse findById(UUID id) {
+        Hospital hospital = getById(id); // Uses your existing getById entity method
+        return mapToResponse(hospital);
+    }
+
+
+    @Transactional
+    public void deleteHospital(UUID hospitalId) {
+        // 1. Check existence
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
+        // 2. Clear Admin Links
+        // We use the new repository method here
+        List<HospitalAdmin> linkedAdmins = hospitalAdminRepository.findByHospitalId(hospitalId);
+
+        linkedAdmins.forEach(admin -> {
+            admin.setHospital(null); // Remove the link
+            hospitalAdminRepository.save(admin);
+        });
+
+        // 3. Now delete the hospital
+        hospitalRepository.delete(hospital);
     }
 
 

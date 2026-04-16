@@ -1,6 +1,7 @@
 package com.shanalert.hospitalalert.service;
 
 import com.shanalert.hospitalalert.dto.UserRequest;
+import com.shanalert.hospitalalert.dto.UserUpdateDTO;
 import com.shanalert.hospitalalert.entity.User;
 import com.shanalert.hospitalalert.model.UserRole;
 import com.shanalert.hospitalalert.model.UserStatus;
@@ -25,8 +26,14 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private HospitalService hospitalService;
 
-    private User getById(UUID userId){
+    @Autowired
+    private HospitalAdminService hospitalAdminService;
+
+
+    public User getById(UUID userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -40,37 +47,11 @@ public class UserService {
         return user;
     }
 
+    // SINGLE METHOD for all registrations
     @Transactional
-    public void createAdmin(UserRequest request) {
-        // We create the user. The 'hospitalId' relationship is managed
-        // outside of the User entity (e.g., in a logs or future profile table)
-        saveUser(request, UserRole.ADMIN);
-        log.info("Admin created.");
-    }
+    public User registerUser(UserRequest request, UserRole role) {
+        log.info("Registering user with role: {}", role);
 
-    @Transactional
-    public void createHospitalAdmin(UserRequest request, UUID hospitalId) {
-        // We create the user. The 'hospitalId' relationship is managed
-        // outside of the User entity (e.g., in a logs or future profile table)
-        saveUser(request, UserRole.HOSPITAL_ADMIN);
-        log.info("Admin created. Access for Hospital {} must be mapped in the Access table.", hospitalId);
-    }
-
-    // 2. HOSPITAL ADMIN: Provisions a Doctor
-    @Transactional
-    public void addDoctor(UserRequest request, UUID hospitalId) {
-        saveUser(request, UserRole.DOCTOR);
-        log.info("Doctor created for facility {}. Relationship held in staff mapping.", hospitalId);
-    }
-
-    // 3. PUBLIC: Patient Registration
-    @Transactional
-    public void registerPatient(UserRequest request) {
-        saveUser(request, UserRole.PATIENT);
-    }
-
-    // INTERNAL HELPER: Purely saves Auth data
-    private void saveUser(UserRequest request, UserRole role) {
         User user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -78,11 +59,28 @@ public class UserService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .phoneNumber(request.getPhoneNumber())
+                .gender(request.getGender())
                 .role(role)
                 .userStatus(UserStatus.ACTIVE)
                 .build();
 
-        userRepository.save(user);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public User updateUser(UUID userId, UserUpdateDTO updateDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // Apply updates only if the values are present in the DTO
+        if (updateDto.getFirstName() != null) user.setFirstName(updateDto.getFirstName());
+        if (updateDto.getLastName() != null) user.setLastName(updateDto.getLastName());
+        if (updateDto.getPhoneNumber() != null) user.setPhoneNumber(updateDto.getPhoneNumber());
+        if (updateDto.getGender() != null) user.setGender(updateDto.getGender());
+        if (updateDto.getUserStatus() != null) user.setUserStatus(updateDto.getUserStatus());
+
+        log.info("Updating profile for user: {}", userId);
+        return userRepository.save(user);
     }
 
 

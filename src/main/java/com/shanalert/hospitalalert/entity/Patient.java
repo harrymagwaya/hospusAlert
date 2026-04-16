@@ -1,6 +1,7 @@
 package com.shanalert.hospitalalert.entity;
 
 import com.shanalert.hospitalalert.model.Gender;
+import com.shanalert.hospitalalert.model.RelationshipType;
 import com.shanalert.hospitalalert.model.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -69,7 +70,10 @@ public class Patient {
     // --- Emergency Contact / Next of Kin ---
     private String nextOfKinName;
     private String nextOfKinPhone;
-    private String nextOfKinRelationship;
+// Inside Patient.java
+
+    @Enumerated(EnumType.STRING)
+    private RelationshipType nextOfKinRelationship;
 
     // --- Insurance & Admin ---
     private String insuranceProvider;
