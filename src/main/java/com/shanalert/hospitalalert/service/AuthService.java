@@ -3,8 +3,10 @@ package com.shanalert.hospitalalert.service;
 import com.shanalert.hospitalalert.config.UserPrincipal;
 import com.shanalert.hospitalalert.dto.AuthResponse;
 import com.shanalert.hospitalalert.dto.LoginRequest;
+import com.shanalert.hospitalalert.dto.PasswordChangeRequest;
 import com.shanalert.hospitalalert.dto.SecurityResetRequest;
 import com.shanalert.hospitalalert.entity.User;
+import com.shanalert.hospitalalert.event.PasswordResetEvent;
 import com.shanalert.hospitalalert.model.HospusAPP;
 import com.shanalert.hospitalalert.model.UserRole;
 import com.shanalert.hospitalalert.repository.UserRepository;
@@ -205,6 +207,24 @@ public class AuthService {
 
 
 
+    // --- FORGOT PASSWORD STEP 1: INITIATE (Stateless) ---
+
+    @Transactional(readOnly = true)
+    public void initiateReset(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        // Generate OTP based on current password hash (Stateless)
+        String userSecret = user.getPassword() + user.getEmail();
+        String otp = otpService.generateStatelessOtp(userSecret);
+
+        // Publish event for asynchronous email delivery
+        eventPublisher.publishEvent(new PasswordResetEvent(email, otp));
+        log.info("Stateless OTP generated and event published for: {}", email);
+    }
+
+    // --- FORGOT PASSWORD STEP 2: VERIFY (Returns Boolean) ---
+
     @Transactional(readOnly = true)
     public boolean verifyOtp(String email, String otpCode) {
         return userRepository.findByEmail(email)
@@ -212,24 +232,47 @@ public class AuthService {
                     String userSecret = user.getPassword() + user.getEmail();
                     return otpService.isOtpValid(userSecret, otpCode);
                 })
-                .orElse(false); // Return false if user doesn't exist or OTP is invalid
+                .orElse(false);
     }
 
-    /**
-     * STEP 3: Finalize the reset.
-     * We still throw an exception here because we MUST NOT save
-     * a new password if the OTP check fails.
-     */
+    // --- FORGOT PASSWORD STEP 3: COMPLETE ---
+
     @Transactional
     public void completeReset(SecurityResetRequest request) {
+        // Double-check OTP validity before writing to DB
         if (!verifyOtp(request.getEmail(), request.getOtpCode())) {
-            throw new IllegalArgumentException("Session expired or invalid OTP. Please try again.");
+            throw new IllegalArgumentException("Invalid or expired OTP code.");
         }
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new EntityNotFoundException("User no longer exists"));
 
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Passwords do not match.");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user); // Password change kills the OTP mathematically
+        log.info("Password successfully reset via OTP for: {}", request.getEmail());
+    }
+
+    // --- LOGGED IN: CHANGE PASSWORD ---
+
+    @Transactional
+    public void changePassword(UUID userId, PasswordChangeRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Incorrect current password.");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("New passwords do not match.");
+        }
+
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+        log.info("Password updated for authenticated user: {}", userId);
     }
 }
