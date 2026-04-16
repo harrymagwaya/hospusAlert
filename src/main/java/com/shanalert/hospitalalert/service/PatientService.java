@@ -108,4 +108,6 @@ public class PatientService {
         log.info("Medical profile updated for patient: {}", userId);
         return patientRepository.save(patient);
     }
+
+
 }

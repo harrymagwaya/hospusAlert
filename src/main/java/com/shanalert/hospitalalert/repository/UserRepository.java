@@ -1,6 +1,9 @@
 package com.shanalert.hospitalalert.repository;
 
 import com.shanalert.hospitalalert.entity.User;
+import com.shanalert.hospitalalert.model.UserStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,4 +16,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    Page<User> findByUserStatus(UserStatus status, Pageable pageable);
 }

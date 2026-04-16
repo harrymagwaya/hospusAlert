@@ -48,6 +48,9 @@ dependencies {
 
 	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 
+	// Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail:4.0.3'
+
 	// Source: https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.1'
 

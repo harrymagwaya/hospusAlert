@@ -3,15 +3,19 @@ package com.shanalert.hospitalalert.service;
 import com.shanalert.hospitalalert.config.UserPrincipal;
 import com.shanalert.hospitalalert.dto.AuthResponse;
 import com.shanalert.hospitalalert.dto.LoginRequest;
+import com.shanalert.hospitalalert.dto.SecurityResetRequest;
 import com.shanalert.hospitalalert.entity.User;
 import com.shanalert.hospitalalert.model.HospusAPP;
 import com.shanalert.hospitalalert.model.UserRole;
+import com.shanalert.hospitalalert.repository.UserRepository;
 import com.shanalert.hospitalalert.security.CustomUserDetailsService;
+import com.shanalert.hospitalalert.security.OtpService;
 import com.shanalert.hospitalalert.security.TokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,10 +23,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.UUID;
-
-import static com.shanalert.hospitalalert.model.HospusAPP.*;
 
 @Slf4j
 @Service
@@ -39,6 +44,15 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private  ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private OtpService otpService;
 
 
 
@@ -125,5 +139,97 @@ public class AuthService {
             log.warn("App Access Denied: {} tried to access {}", role, appSource.getValue());
             throw new AccessDeniedException("Access denied for " + appSource.getValue());
         }
+    }
+
+
+
+
+//    // --- LOGGED IN: CHANGE PASSWORD ---
+//    @Transactional
+//    public void changePassword(UUID userId, PasswordChangeRequest request) {
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+//
+//        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+//            throw new IllegalArgumentException("Incorrect current password.");
+//        }
+//        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+//            throw new IllegalArgumentException("New passwords do not match.");
+//        }
+//
+//        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+//        userRepository.save(user);
+//        log.info("Password changed successfully for user: {}", userId);
+//    }
+
+//    // --- FORGOT PASSWORD: STEP 1 (INITIATE) ---
+//    @Transactional
+//    public void initiateReset(String email) {
+//        User user = userRepository.findByEmail(email)
+//                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+//
+//        String otp = String.format("%06d", new Random().nextInt(999999));
+//
+//        user.setResetToken(passwordEncoder.encode(otp));
+//        user.setTokenExpiry(LocalDateTime.now().plusMinutes(10));
+//        userRepository.save(user);
+//
+//        eventPublisher.publishEvent(new PasswordResetEvent(email, otp));
+//        log.info("Password reset OTP generated for: {}", email);
+//    }
+//
+//    // --- FORGOT PASSWORD: STEP 2 (COMPLETE) ---
+//    @Transactional
+//    public void completeReset(SecurityResetRequest request) {
+//        User user = userRepository.findByEmail(request.getEmail())
+//                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+//
+//        if (user.getTokenExpiry() == null || user.getTokenExpiry().isBefore(LocalDateTime.now())) {
+//            throw new IllegalArgumentException("OTP has expired.");
+//        }
+//        if (!passwordEncoder.matches(request.getOtpCode(), user.getResetToken())) {
+//            throw new IllegalArgumentException("Invalid OTP code.");
+//        }
+//        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+//            throw new IllegalArgumentException("Passwords do not match.");
+//        }
+//
+//        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+//        user.setResetToken(null);
+//        user.setTokenExpiry(null);
+//        userRepository.save(user);
+//
+//        log.info("Password reset successfully via OTP for: {}", user.getEmail());
+//    }
+
+
+
+
+    @Transactional(readOnly = true)
+    public boolean verifyOtp(String email, String otpCode) {
+        return userRepository.findByEmail(email)
+                .map(user -> {
+                    String userSecret = user.getPassword() + user.getEmail();
+                    return otpService.isOtpValid(userSecret, otpCode);
+                })
+                .orElse(false); // Return false if user doesn't exist or OTP is invalid
+    }
+
+    /**
+     * STEP 3: Finalize the reset.
+     * We still throw an exception here because we MUST NOT save
+     * a new password if the OTP check fails.
+     */
+    @Transactional
+    public void completeReset(SecurityResetRequest request) {
+        if (!verifyOtp(request.getEmail(), request.getOtpCode())) {
+            throw new IllegalArgumentException("Session expired or invalid OTP. Please try again.");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new EntityNotFoundException("User no longer exists"));
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

@@ -111,4 +111,18 @@ public class HospitalAdminService {
     public List<HospitalAdmin> findByHospitalId(UUID hospitalId){
         return hospitalAdminRepository.findByHospitalId(hospitalId);
     }
+
+    // Inside HospitalAdminService.java
+
+    @Transactional
+    public void deactivateProfile(UUID userId) {
+        hospitalAdminRepository.findById(userId).ifPresent(admin -> {
+            log.info("Unlinking HospitalAdmin profile and clearing facility access for user: {}", userId);
+
+            // 1. Remove the link to the hospital
+            admin.setHospital(null);
+
+            hospitalAdminRepository.save(admin);
+        });
+    }
 }
