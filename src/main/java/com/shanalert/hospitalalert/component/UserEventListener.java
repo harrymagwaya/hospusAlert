@@ -1,4 +1,4 @@
-package com.shanalert.hospitalalert.listener;
+package com.shanalert.hospitalalert.component;
 
 import com.shanalert.hospitalalert.event.PasswordResetEvent;
 import com.shanalert.hospitalalert.service.EmailService;
