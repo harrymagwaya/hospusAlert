@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -10,7 +11,8 @@ import java.util.Base64;
 public class OtpService {
 
     // Note: For production, consider moving this to application.properties
-    private final String SYSTEM_SECRET = "HospusApp_Internal_Secret_Key_2026";
+    @Value("${app.security.system-secret:HospusApp_Internal_Default_2026}")
+    private  String SYSTEM_SECRET;
 
     public String generateStatelessOtp(String userSecret) {
         // We use a 15-minute time block (900,000 ms)

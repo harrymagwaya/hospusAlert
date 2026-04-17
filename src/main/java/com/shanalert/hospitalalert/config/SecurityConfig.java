@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Allow login/registration for all apps
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/users/register").permitAll()
 
                         // Everything else requires a valid JWT
                         // (Role-specific checks happen in your Services/Controllers)

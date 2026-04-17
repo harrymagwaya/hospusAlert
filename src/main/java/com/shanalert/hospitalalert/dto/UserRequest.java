@@ -1,10 +1,8 @@
 package com.shanalert.hospitalalert.dto;
 
 import com.shanalert.hospitalalert.model.Gender;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import com.shanalert.hospitalalert.model.UserRole;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,5 +38,6 @@ public class UserRequest {
 
     private Gender gender;
 
-    private
+    @NotNull(message = "User role is required")
+    private UserRole userRole;
 }
