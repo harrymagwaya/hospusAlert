@@ -1,9 +1,6 @@
 package com.shanalert.hospitalalert.entity;
 
-import com.shanalert.hospitalalert.model.Auditable;
-import com.shanalert.hospitalalert.model.DoctorStatus;
-import com.shanalert.hospitalalert.model.MedicalSpecialty;
-import com.shanalert.hospitalalert.model.UserRole;
+import com.shanalert.hospitalalert.model.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @SuperBuilder
@@ -34,6 +33,8 @@ public class Doctor extends Auditable {
     private String firstName;
     private String lastName;
 
+    private Gender gender;
+
     @Column(length = 15)
     private String phoneNumber; // Critical for emergency SMS/Calls
 
@@ -53,7 +54,9 @@ public class Doctor extends Auditable {
     private Integer yearsOfExperience;
 
 
-    private UUID hospitalId; // Links to the Hospital entity
+//    private UUID hospitalId; // Links to the Hospital entity
+
+
 
     private String department; // e.g., "Accident & Emergency (A&E)"
 
@@ -67,5 +70,14 @@ public class Doctor extends Auditable {
     // --- Emergency Preferences ---
     private Boolean handlesTrauma;
     private Boolean handlesPediatrics;
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "doctor_hospitals",
+            joinColumns = @JoinColumn(name = "doctor_id"),
+            inverseJoinColumns = @JoinColumn(name = "hospital_id")
+    )
+    private List<Hospital> hospitals = new ArrayList<>();
 
 }

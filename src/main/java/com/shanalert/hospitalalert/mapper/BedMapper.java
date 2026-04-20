@@ -18,7 +18,6 @@ public class BedMapper {
                 bed.getBedNumber(),
                 bed.getBedType(),
                 bed.getStatus(),
-                bed.getOccupiedByPatientId(),
                 message
         );
     }

@@ -11,6 +11,5 @@ public record BedResponse(
         String bedNumber,
         BedType bedType,
         BedStatus status,
-        UUID occupiedByPatientId,
         String message
 ) {}

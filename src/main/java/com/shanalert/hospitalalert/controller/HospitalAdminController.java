@@ -48,7 +48,7 @@ public class HospitalAdminController {
         hospitalAdminService.removeAdminProfile(userId);
     }
 
-    @GetMapping("/{hospitalId}")
+    @GetMapping("/{hospitalId}/admin")
     public List<HospitalAdmin> findByHospitalId(@PathVariable UUID hospitalId){
         return hospitalAdminService.findByHospitalId(hospitalId);
     }

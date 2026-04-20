@@ -3,6 +3,7 @@ package com.shanalert.hospitalalert.service;
 
 import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.entity.HospitalAdmin;
+import com.shanalert.hospitalalert.entity.Patient;
 import com.shanalert.hospitalalert.repository.HospitalAdminRepository;
 import com.shanalert.hospitalalert.entity.User;
 import com.shanalert.hospitalalert.repository.HospitalRepository;
@@ -41,10 +42,31 @@ public class HospitalAdminService {
         return hospitalAdminRepository.findAll(pageable);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public HospitalAdmin findById(UUID userId) {
-        return hospitalAdminRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Hospital Admin profile not found"));
+        // Fetch Master Identity
+        User masterUser = userService.getById(userId);
+
+        // Fetch existing or initialize a fresh profile
+        HospitalAdmin hospitalAdmin = hospitalAdminRepository.findById(userId)
+                .orElseGet(() -> {
+                    log.info("Lazy initializing Patient profile for user: {}", userId);
+                    HospitalAdmin newAdmin = new HospitalAdmin();
+                    newAdmin.setId(userId);
+                    return newAdmin;
+                });
+
+        // Always sync core fields to ensure they mirror the User table
+        hospitalAdmin.setUsername(masterUser.getUsername());
+        hospitalAdmin.setEmail(masterUser.getEmail());
+        hospitalAdmin.setFirstName(masterUser.getFirstName());
+        hospitalAdmin.setLastName(masterUser.getLastName());
+        hospitalAdmin.setPhoneNumber(masterUser.getPhoneNumber());
+        hospitalAdmin.setGender(masterUser.getGender());
+        hospitalAdmin.setRole(masterUser.getRole());
+
+        // Save and return
+        return hospitalAdminRepository.save(hospitalAdmin);
     }
 
 
