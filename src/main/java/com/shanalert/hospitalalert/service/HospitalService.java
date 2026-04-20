@@ -1,15 +1,13 @@
 package com.shanalert.hospitalalert.service;
 
-import com.shanalert.hospitalalert.dto.HospitalDiscoveryResponse;
-import com.shanalert.hospitalalert.dto.HospitalRequest;
-import com.shanalert.hospitalalert.dto.HospitalResponse;
-import com.shanalert.hospitalalert.entity.Address;
-import com.shanalert.hospitalalert.entity.Hospital;
-import com.shanalert.hospitalalert.entity.HospitalAdmin;
+import com.shanalert.hospitalalert.dto.*;
+import com.shanalert.hospitalalert.entity.*;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.model.EmergencyType;
 import com.shanalert.hospitalalert.model.HospitalStatus;
+import com.shanalert.hospitalalert.repository.BedAdmissionRepository;
+import com.shanalert.hospitalalert.repository.BedRepository;
 import com.shanalert.hospitalalert.repository.HospitalAdminRepository;
 import com.shanalert.hospitalalert.repository.HospitalRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -42,6 +42,12 @@ public class HospitalService {
 
     @Autowired
     private AddressService addressService;
+
+    @Autowired
+    private BedAdmissionRepository admissionRepository;
+
+    @Autowired
+    private BedRepository bedRepository;
 
 
 
@@ -162,14 +168,92 @@ public class HospitalService {
                             log.error("Failed to calculate ETA for hospital {}: {}", hospital.getName(), e.getMessage());
                         }
                     }
-                    int availableCount = (hospital.getBeds() == null) ? 0 : (int) hospital.getBeds().stream()
-                            .filter(b -> b.getBedType() == neededBed && b.getStatus() == BedStatus.AVAILABLE)
-                            .count();
+                    int availableCount = bedService.countAvailableBeds(hospital.getId(), neededBed);
                     return new HospitalDiscoveryResponse(hospital.getId(), hospital.getName(), street, eta, availableCount, lat,
                            lng);
                 })
                 .sorted(Comparator.comparing(HospitalDiscoveryResponse::estimatedMinutes,
                         Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<BedOccupancyResponse> getBedOccupancy(UUID hospitalId) {
+
+        // 1. Get all beds in hospital
+        List<Bed> beds = bedRepository.findAllByHospitalId(hospitalId);
+
+        List<UUID> bedIds = beds.stream()
+                .map(Bed::getId)
+                .toList();
+
+        // 2. Get active admissions
+        List<BedAdmission> admissions =
+                admissionRepository.findActiveAdmissionsForBeds(bedIds);
+
+        // 3. Map: bedId → admission
+        Map<UUID, BedAdmission> admissionMap = admissions.stream()
+                .collect(Collectors.toMap(
+                        ba -> ba.getBed().getId(),
+                        ba -> ba
+                ));
+
+        // 4. Build response
+        return beds.stream()
+                .map(bed -> {
+
+                    BedAdmission admission = admissionMap.get(bed.getId());
+
+                    UUID patientId = null;
+                    String patientName = null;
+                    String admissionStatus = null;
+
+                    if (admission != null) {
+                        patientId = admission.getPatientId();
+                        admissionStatus = admission.getStatus().name();
+
+                        // OPTIONAL: fetch patient
+                        // (optimize later with join)
+                        // Example:
+                        // Patient p = patientRepo.findById(patientId).orElse(null);
+                        // patientName = p != null ? p.getFirstName() + " " + p.getLastName() : null;
+                    }
+
+                    return new BedOccupancyResponse(
+                            bed.getId(),
+                            bed.getBedNumber(),
+                            bed.getBedType().name(),
+                            bed.getStatus().name(),
+                            patientId,
+                            patientName,
+                            admissionStatus
+                    );
+                })
+                .toList();
+    }
+
+
+    @Transactional(readOnly = true)
+    public List<HospitalPatientResponse> getPatientsInHospital(UUID hospitalId) {
+
+        List<BedAdmission> admissions =
+                admissionRepository.findActiveAdmissionsByHospital(hospitalId);
+
+        return admissions.stream()
+                .map(admission -> {
+
+                    Bed bed = admission.getBed();
+
+                    return new HospitalPatientResponse(
+                            admission.getPatientId(),
+                            admission.getId(),
+                            bed.getBedNumber(),
+                            bed.getBedType().name(),
+                            admission.getStatus().name(),
+                            admission.getAdmittedAt()
+                    );
+                })
                 .toList();
     }
 

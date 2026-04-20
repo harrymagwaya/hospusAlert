@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.DoctorStatus;
 import com.shanalert.hospitalalert.model.MedicalSpecialty;
 import com.shanalert.hospitalalert.model.UserRole;
@@ -8,15 +9,16 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Doctor {
+public class Doctor extends Auditable {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)
     private UUID id;
@@ -55,6 +57,7 @@ public class Doctor {
 
     private String department; // e.g., "Accident & Emergency (A&E)"
 
+    @Builder.Default
     // --- Operational Status (Triage Logic) ---
     private Boolean isAvailable = true; // Can they accept a new patient right now?
 

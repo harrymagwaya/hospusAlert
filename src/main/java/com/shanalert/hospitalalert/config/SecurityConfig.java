@@ -32,27 +32,34 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
 
-                // 1. Maintain Statelessness for JWT
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // 2. Routing Logic
                 .authorizeHttpRequests(auth -> auth
-                        // Allow login/registration for all apps
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/users/register").permitAll()
-
-                        // Everything else requires a valid JWT
-                        // (Role-specific checks happen in your Services/Controllers)
                         .anyRequest().authenticated()
                 )
 
-                .exceptionHandling(exception ->
-                        exception.accessDeniedHandler(customAccessDeniedHandler)
+                .exceptionHandling(exception -> exception
+                        // 1. Existing 403 Handler
+                        .accessDeniedHandler(customAccessDeniedHandler)
+
+                        // 2. NEW: Add 401 Handler (AuthenticationEntryPoint)
+                        // This ensures Postman gets your JSON format for missing/bad tokens
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setContentType("application/json");
+                            response.setStatus(401);
+                            response.getWriter().write(
+                                    "{\"timestamp\":\"" + java.time.LocalDateTime.now() + "\", " +
+                                            "\"status\":401, \"error\":\"Unauthorized\", " +
+                                            "\"message\":\"" + authException.getMessage() + "\", " +
+                                            "\"path\":\"" + request.getRequestURI() + "\"}"
+                            );
+                        })
                 )
 
-                // 3. Inject our custom filter
                 .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

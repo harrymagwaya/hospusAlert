@@ -48,21 +48,5 @@ public class BedController {
         return bedService.updateBed(request, actorId);
     }
 
-    @PostMapping("/reserve")
-    public BedResponse reserveBed(
-            @RequestParam UUID hospitalId,
-            @RequestParam BedType type,
-            @RequestParam UUID patientId) {
-        return bedService.reserveBedForPatient(hospitalId, type, patientId);
-    }
 
-    @PutMapping("/{bedId}/arrival")
-    public BedResponse confirmArrival(@PathVariable UUID bedId) {
-        return bedService.confirmArrival(bedId);
-    }
-
-    @PutMapping("/{bedId}/discharge")
-    public BedResponse confirmDischarge(@PathVariable UUID bedId) {
-        return bedService.dischargePatient(bedId);
-    }
 }

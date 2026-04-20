@@ -3,12 +3,13 @@ package com.shanalert.hospitalalert.entity;
 import com.shanalert.hospitalalert.model.Auditable;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

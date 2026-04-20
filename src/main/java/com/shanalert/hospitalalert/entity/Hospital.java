@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.HospitalStatus;
 import com.shanalert.hospitalalert.entity.Address;
 
@@ -8,17 +9,18 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "hospitals")
-public class Hospital {
+public class Hospital extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -42,6 +44,7 @@ public class Hospital {
 
     private Integer icuBedsAvailable;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean isEmergencyReady = true;
 

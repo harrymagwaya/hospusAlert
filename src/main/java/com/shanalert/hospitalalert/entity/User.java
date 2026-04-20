@@ -1,26 +1,26 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.Gender;
 import com.shanalert.hospitalalert.model.UserRole;
 import com.shanalert.hospitalalert.model.UserStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 @Entity
 @Table(name = "users")
-public class User {
+public class User extends Auditable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(unique = true, nullable = false)

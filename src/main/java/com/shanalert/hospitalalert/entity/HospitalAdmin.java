@@ -1,22 +1,22 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.Gender;
 import com.shanalert.hospitalalert.model.UserRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.UUID;
 
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 @Entity
-public class HospitalAdmin {
+public class HospitalAdmin extends Auditable {
 
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)

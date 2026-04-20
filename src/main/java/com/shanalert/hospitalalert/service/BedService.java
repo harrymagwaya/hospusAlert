@@ -4,6 +4,7 @@ import com.shanalert.hospitalalert.dto.BedResponse;
 import com.shanalert.hospitalalert.dto.BedUpdateRequest;
 import com.shanalert.hospitalalert.dto.BedCreateRequest;
 import com.shanalert.hospitalalert.entity.Bed;
+import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.mapper.BedMapper;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
@@ -89,41 +90,7 @@ public class BedService {
         return bedMapper.toDto(updatedBed, "Bed updated successfully.");
     }
 
-    @Transactional
-    public BedResponse reserveBedForPatient(UUID hospitalId, BedType type, UUID patientId) {
-        Bed availableBed = bedRepository.findFirstByHospitalIdAndBedTypeAndStatus(
-                        hospitalId, type, BedStatus.AVAILABLE)
-                .orElseThrow(() -> new RuntimeException("No " + type + " beds available at this hospital."));
 
-        availableBed.setStatus(BedStatus.RESERVED);
-        availableBed.setOccupiedByPatientId(patientId);
-        Bed savedBed = bedRepository.save(availableBed);
-
-        return bedMapper.toDto(savedBed, "Reservation successful.");
-    }
-
-    @Transactional
-    public BedResponse confirmArrival(UUID bedId) {
-        Bed bed = bedRepository.findById(bedId)
-                .orElseThrow(() -> new EntityNotFoundException("Bed record not found."));
-
-        bed.setStatus(BedStatus.OCCUPIED);
-        Bed savedBed = bedRepository.save(bed);
-
-        return bedMapper.toDto(savedBed, "Patient check-in confirmed.");
-    }
-
-    @Transactional
-    public BedResponse dischargePatient(UUID bedId) {
-        Bed bed = bedRepository.findById(bedId)
-                .orElseThrow(() -> new EntityNotFoundException("Bed record not found."));
-
-        bed.setStatus(BedStatus.AVAILABLE);
-        bed.setOccupiedByPatientId(null);
-        Bed savedBed = bedRepository.save(bed);
-
-        return bedMapper.toDto(savedBed, "Patient discharged. Bed is now available.");
-    }
 
     public Bed getBedById(UUID bedId) {
         Bed bed = bedRepository.findById(bedId)
@@ -155,25 +122,9 @@ public class BedService {
                 .orElse("Unknown Bed");
     }
 
-    /**
-     * Internal method called by EmergencyAlertService to finalize a reservation
-     * after the patient selects a hospital from the narrowed-down list.
-     */
-    @Transactional
-    public BedResponse reserveBedForEmergency(UUID hospitalId, BedType type, UUID patientId) {
-        log.info("Attempting to lock a {} bed at hospital {} for patient {}", type, hospitalId, patientId);
-
-        // Using the 'findFirst' method we created earlier to get the next available slot
-        Bed availableBed = bedRepository.findFirstByHospitalIdAndBedTypeAndStatus(
-                        hospitalId, type, BedStatus.AVAILABLE)
-                .orElseThrow(() -> new RuntimeException("Sorry, the last available " + type + " bed was just taken."));
-
-        // Update the state
-        availableBed.setStatus(BedStatus.RESERVED);
-        availableBed.setOccupiedByPatientId(patientId);
-
-        Bed savedBed = bedRepository.save(availableBed);
-
-        return bedMapper.toDto(savedBed, "Bed successfully reserved for incoming emergency.");
+    public int countAvailableBeds(UUID hospitalId, BedType neededBed){
+        return bedRepository.countAvailableBeds(hospitalId, neededBed);
     }
+
+
 }

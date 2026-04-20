@@ -1,6 +1,7 @@
 package com.shanalert.hospitalalert.controller;
 
 
+import com.shanalert.hospitalalert.config.UserPrincipal;
 import com.shanalert.hospitalalert.dto.UserRequest;
 import com.shanalert.hospitalalert.dto.UserResponse;
 import com.shanalert.hospitalalert.dto.UserUpdateDTO;
@@ -8,6 +9,7 @@ import com.shanalert.hospitalalert.entity.User;
 import com.shanalert.hospitalalert.model.UserRole;
 import com.shanalert.hospitalalert.model.UserStatus;
 import com.shanalert.hospitalalert.service.UserService;
+import com.shanalert.hospitalalert.util.AppConstants;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,6 +18,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -42,28 +45,28 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable UUID id) {
-        return userService.getById(id);
+        return userService.findById(id);
     }
 
     // RESTRICTED: Both System Admin and Hospital Admin can onboard staff
     @PostMapping("/staff/onboard")
     @PreAuthorize("hasAnyRole('ADMIN', 'HOSPITAL_ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse onboardStaff(@Valid @RequestBody UserRequest request) {
+    public UserResponse onboardStaff(@Valid @RequestBody UserRequest request,@AuthenticationPrincipal UserPrincipal actor) {
 
         // Safety Logic: A Hospital Admin should not be able to create another Super Admin
         if (request.getUserRole() == UserRole.ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only Super Admins can create other Admins.");
         }
 
-        return userService.registerUser(request);
+        return userService.registerUser(request, actor.getId());
     }
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public UserResponse registerPatient(@Valid @RequestBody UserRequest request) {
         request.setUserRole(UserRole.PATIENT); // Force role to Patient
-        return userService.registerUser(request);
+        return userService.registerUser(request, null);
     }
 
     @PatchMapping("/{id}")

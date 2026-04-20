@@ -1,8 +1,6 @@
 package com.shanalert.hospitalalert.controller;
 
-import com.shanalert.hospitalalert.dto.HospitalDiscoveryResponse;
-import com.shanalert.hospitalalert.dto.HospitalRequest;
-import com.shanalert.hospitalalert.dto.HospitalResponse;
+import com.shanalert.hospitalalert.dto.*;
 import com.shanalert.hospitalalert.model.EmergencyType;
 import com.shanalert.hospitalalert.service.HospitalService;
 import jakarta.validation.Valid;
@@ -49,5 +47,21 @@ public class HospitalController {
             @RequestParam Double lng
     ) {
         return hospitalService.findHospitalsForEmergency(type, lat, lng);
+    }
+
+    // 1. Patients in hospital (clean clinical view)
+    @GetMapping("/{hospitalId}/patients")
+    public List<HospitalPatientResponse> getPatientsInHospital(
+            @PathVariable UUID hospitalId
+    ) {
+        return hospitalService.getPatientsInHospital(hospitalId);
+    }
+
+    // 2. Bed occupancy map (VERY IMPORTANT UI FEATURE)
+    @GetMapping("/{hospitalId}/beds/occupancy")
+    public List<BedOccupancyResponse> getBedOccupancy(
+            @PathVariable UUID hospitalId
+    ) {
+        return hospitalService.getBedOccupancy(hospitalId);
     }
 }

@@ -6,19 +6,18 @@ import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import java.sql.Types;
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@EqualsAndHashCode(callSuper=false)
 @Table(name = "beds")
 public class Bed extends Auditable {
 
@@ -42,10 +41,5 @@ public class Bed extends Auditable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BedStatus status;
-
-    // The bridge to the Patient/User UUID
-    @JdbcTypeCode(Types.VARCHAR)
-    @Column(name = "occupied_by_patient_id")
-    private UUID occupiedByPatientId;
 
 }

@@ -3,6 +3,7 @@ package com.shanalert.hospitalalert.controller;
 import com.shanalert.hospitalalert.dto.EmergencyAlertRequest;
 import com.shanalert.hospitalalert.dto.EmergencyAlertResponse;
 import com.shanalert.hospitalalert.service.EmergencyAlertService;
+import com.shanalert.hospitalalert.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +32,8 @@ public class EmergencyAlertController {
      */
     @PatchMapping("/{alertId}/arrive")
     @ResponseStatus(HttpStatus.OK)
-    public EmergencyAlertResponse markAsArrived(@PathVariable UUID alertId) {
-        return alertService.markAsArrived(alertId);
+    public EmergencyAlertResponse markAsArrived(@PathVariable UUID alertId, @RequestHeader(AppConstants.ACTOR_ID) UUID actorId) {
+        return alertService.markPatientAsArrived(alertId, actorId);
     }
 
     /**
@@ -41,7 +42,7 @@ public class EmergencyAlertController {
      */
     @PatchMapping("/{alertId}/check-in")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void checkInToBed(@PathVariable UUID alertId) {
-        alertService.checkInToBed(alertId);
+    public void checkInToBed(@PathVariable UUID alertId, @RequestHeader(AppConstants.ACTOR_ID) UUID actorId ) {
+        alertService.checkInToBed(alertId, actorId);
     }
 }

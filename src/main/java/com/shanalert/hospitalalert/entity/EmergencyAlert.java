@@ -5,19 +5,18 @@ import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.BedType;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import java.sql.Types;
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@EqualsAndHashCode(callSuper=false)
 @Table(name = "emergency_alerts")
 public class EmergencyAlert extends Auditable {
 
@@ -33,9 +32,6 @@ public class EmergencyAlert extends Auditable {
     @Column(name = "hospital_id", nullable = false)
     private UUID hospitalId;
 
-    @JdbcTypeCode(Types.VARCHAR)
-    private UUID assignedBedId;
-
     @Enumerated(EnumType.STRING)
     private BedType requestedBedType;
 
@@ -47,5 +43,7 @@ public class EmergencyAlert extends Auditable {
 
     @Column(columnDefinition = "TEXT")
     private String patientNotes; // e.g., "Difficulty breathing, chest pain"
+
+    private UUID admissionId;
 
 }

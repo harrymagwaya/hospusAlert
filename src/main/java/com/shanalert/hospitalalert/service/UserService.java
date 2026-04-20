@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.service;
 
+import com.shanalert.hospitalalert.advice.ResourceAlreadyExistsException;
 import com.shanalert.hospitalalert.dto.UserRequest;
 import com.shanalert.hospitalalert.dto.UserResponse;
 import com.shanalert.hospitalalert.dto.UserUpdateDTO;
@@ -10,6 +11,7 @@ import com.shanalert.hospitalalert.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +29,7 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Lazy
     @Autowired
     private HospitalAdminService hospitalAdminService;
 
@@ -58,14 +61,28 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getById(UUID userId){
+    public UserResponse findById(UUID userId){
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         return mapToResponse(user);
     }
 
+    @Transactional(readOnly = true)
+    public User getById(UUID userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return user;
+    }
+
     @Transactional
-    public UserResponse registerUser(UserRequest request) {
+    public UserResponse registerUser(UserRequest request, UUID actorId) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new ResourceAlreadyExistsException("Email " + request.getEmail() + " is already in use.");
+        }
+
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new ResourceAlreadyExistsException("Username " + request.getUsername() + " is already taken.");
+        }
         log.info("Registering user with role: {}", request.getUserRole());
 
         User user = User.builder()
@@ -78,6 +95,7 @@ public class UserService {
                 .gender(request.getGender())
                 .role(request.getUserRole())
                 .userStatus(UserStatus.ACTIVE)
+                .createdBy(actorId)
                 .build();
 
         return mapToResponse(userRepository.save(user));

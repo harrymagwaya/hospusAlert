@@ -6,6 +6,8 @@ import io.jsonwebtoken.Jwts;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.SignatureAlgorithm;
 
@@ -27,15 +29,16 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TokenProvider {
 
-    @Value("${jwt.secret}")
+    @Value("${app.security.jwt.secret}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration}")
+    @Value("${app.security.jwt.expiration}")
     private long expiration;
 
 
-    public Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret); // import io.jsonwebtoken.io.Decoders
+        return Keys.hmacShaKeyFor(keyBytes); // import io.jsonwebtoken.security.Keys
     }
 
     public String generateToken(Authentication authentication) {
@@ -78,6 +81,11 @@ public class TokenProvider {
             log.error("failed to validate token: {}", e.getMessage());
             return false;
         }
+    }
+
+    public UUID getHospitalIdFromToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("hospitalId", UUID.class);
     }
 
     public long getExpiration(String token ) {
