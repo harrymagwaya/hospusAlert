@@ -1,7 +1,9 @@
 package com.shanalert.hospitalalert.controller;
 
+import com.shanalert.hospitalalert.dto.HospitalAdminUpdateDto;
 import com.shanalert.hospitalalert.entity.HospitalAdmin;
 import com.shanalert.hospitalalert.service.HospitalAdminService;
+import com.shanalert.hospitalalert.util.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,9 +38,15 @@ public class HospitalAdminController {
     @PatchMapping("/{userId}")
     public HospitalAdmin update(
             @PathVariable UUID userId,
-            @RequestBody HospitalAdmin updateData,
-            @RequestParam(required = false) UUID hospitalId) {
-        return hospitalAdminService.updateAdminProfile(userId, updateData, hospitalId);
+            @RequestBody HospitalAdminUpdateDto updateData, @RequestHeader(AppConstants.ACTOR_ID) UUID actorId) {
+        return hospitalAdminService.updateAdminProfile(userId, updateData, actorId);
+    }
+
+    @PostMapping("/link/user/{userId}/hospital/{hospitalId}")
+    public void linkToHospital(
+            @PathVariable UUID userId,
+            @PathVariable UUID hospitalId) {
+        hospitalAdminService.linkUserToHospital(userId, hospitalId);
     }
 
     // DELETE

@@ -5109,3 +5109,112 @@ jakarta.persistence.EntityNotFoundException: Hospital Admin profile not found
 2026-04-20T15:52:50.725+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Writing [Patient(id=89883a8a-ac8b-4a5f-9fcc-e775962c349d, username=jdoe_patient, email=johndoe@example.com, f (truncated)...]
 2026-04-20T15:52:50.726+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
 2026-04-20T15:52:50.726+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-20T16:06:19.966+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Retrograde clock change detected (housekeeper delta=27s725ms), soft-evicting connections from pool.
+2026-04-20T16:07:19.335+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Retrograde clock change detected (housekeeper delta=29s360ms), soft-evicting connections from pool.
+2026-04-20T16:08:58.890+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=1m39s555ms).
+2026-04-20T16:20:54.820+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=7m22s814ms).
+2026-04-20T16:22:56.800+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Securing POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:22:56.803+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-04-20T16:22:56.803+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.s.security.web.FilterChainProxy        : Secured POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:22:56.804+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : POST "/api/v1/auth/login?app=%20ADMIN_APP", parameters={masked}
+2026-04-20T16:22:56.805+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.shanalert.hospitalalert.controller.AuthController#login(LoginRequest, HospusAPP)
+2026-04-20T16:22:56.805+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:22:56.872+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [LoginRequest(email=mwijukaharoid@gmail.com, password=YourSecurePassword123!)]
+2026-04-20T16:22:56.940+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-8] org.hibernate.orm.jdbc.bind              : binding parameter (1:VARCHAR) <- [mwijukaharoid@gmail.com]
+2026-04-20T16:22:56.945+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-8] c.s.h.security.CustomUserDetailsService  : Found user with emailmwijukaharoid@gmail.com 
+2026-04-20T16:22:57.115+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-20T16:22:57.116+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] m.m.a.RequestResponseBodyMethodProcessor : Writing [com.shanalert.hospitalalert.dto.AuthResponse@54116ea3]
+2026-04-20T16:22:57.121+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:22:57.121+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-8] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-20T16:25:22.072+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.s.security.web.FilterChainProxy        : Securing POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:25:22.079+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-04-20T16:25:22.080+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.s.security.web.FilterChainProxy        : Secured POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:25:22.114+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : POST "/api/v1/auth/login?app=%20ADMIN_APP", parameters={masked}
+2026-04-20T16:25:22.134+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.shanalert.hospitalalert.controller.AuthController#login(LoginRequest, HospusAPP)
+2026-04-20T16:25:22.134+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:25:22.136+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [LoginRequest(email=mwijukaharoid@gmail.com, password=YourSecurePassword123!)]
+2026-04-20T16:25:22.144+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-10] org.hibernate.orm.jdbc.bind              : binding parameter (1:VARCHAR) <- [mwijukaharoid@gmail.com]
+2026-04-20T16:25:22.150+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-10] c.s.h.security.CustomUserDetailsService  : Found user with emailmwijukaharoid@gmail.com 
+2026-04-20T16:25:22.365+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-20T16:25:22.366+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] m.m.a.RequestResponseBodyMethodProcessor : Writing [com.shanalert.hospitalalert.dto.AuthResponse@227860de]
+2026-04-20T16:25:22.371+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:25:22.372+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-10] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-20T16:34:22.251+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Retrograde clock change detected (housekeeper delta=27s283ms), soft-evicting connections from pool.
+2026-04-20T16:44:48.690+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=10m26s439ms).
+2026-04-20T16:49:16.787+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Securing POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:49:16.789+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.s.s.w.a.AnonymousAuthenticationFilter  : Set SecurityContextHolder to anonymous SecurityContext
+2026-04-20T16:49:16.789+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.s.security.web.FilterChainProxy        : Secured POST /api/v1/auth/login?app=%20ADMIN_APP
+2026-04-20T16:49:16.790+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : POST "/api/v1/auth/login?app=%20ADMIN_APP", parameters={masked}
+2026-04-20T16:49:16.791+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.shanalert.hospitalalert.controller.AuthController#login(LoginRequest, HospusAPP)
+2026-04-20T16:49:16.791+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:16.794+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [LoginRequest(email=mwijukaharoid@gmail.com, password=YourSecurePassword123!)]
+2026-04-20T16:49:16.802+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-4] org.hibernate.orm.jdbc.bind              : binding parameter (1:VARCHAR) <- [mwijukaharoid@gmail.com]
+2026-04-20T16:49:16.809+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-4] c.s.h.security.CustomUserDetailsService  : Found user with emailmwijukaharoid@gmail.com 
+2026-04-20T16:49:16.960+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-20T16:49:16.960+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] m.m.a.RequestResponseBodyMethodProcessor : Writing [com.shanalert.hospitalalert.dto.AuthResponse@4de7c4ea]
+2026-04-20T16:49:16.964+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:16.965+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-4] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-20T16:49:23.474+03:00  WARN 48307 --- [hospitalalert] [HikariPool-1:housekeeper] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=3m31s350ms).
+2026-04-20T16:49:26.135+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/patients/89883a8a-ac8b-4a5f-9fcc-e775962c349d
+2026-04-20T16:49:26.140+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-5] c.s.h.security.TokenProvider             : validated token
+2026-04-20T16:49:26.146+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-04-20T16:49:26.146+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Opened new EntityManager [SessionImpl(1325662246<open>)] for JPA transaction
+2026-04-20T16:49:26.148+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@54806a58]
+2026-04-20T16:49:26.151+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [87284eda-0b7c-4495-928d-a13c41402745]
+2026-04-20T16:49:26.162+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2026-04-20T16:49:26.162+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(1325662246<open>)]
+2026-04-20T16:49:26.165+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Closing JPA EntityManager after transaction
+2026-04-20T16:49:26.165+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-5] c.s.h.security.CustomUserDetailsService  : Found User with id 87284eda-0b7c-4495-928d-a13c41402745
+2026-04-20T16:49:26.166+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.security.web.FilterChainProxy        : Secured GET /api/v1/patients/89883a8a-ac8b-4a5f-9fcc-e775962c349d
+2026-04-20T16:49:26.166+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : GET "/api/v1/patients/89883a8a-ac8b-4a5f-9fcc-e775962c349d", parameters={}
+2026-04-20T16:49:26.167+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.shanalert.hospitalalert.controller.PatientController#getPatient(UUID)
+2026-04-20T16:49:26.167+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:26.169+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(18851826<open>)] for JPA transaction
+2026-04-20T16:49:26.169+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [com.shanalert.hospitalalert.service.PatientService.getPatientProfile]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2026-04-20T16:49:26.170+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@1bc82cc7]
+2026-04-20T16:49:26.176+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(18851826<open>)] for JPA transaction
+2026-04-20T16:49:26.177+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Participating in existing transaction
+2026-04-20T16:49:26.177+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(18851826<open>)] for JPA transaction
+2026-04-20T16:49:26.177+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Participating in existing transaction
+2026-04-20T16:49:26.178+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [89883a8a-ac8b-4a5f-9fcc-e775962c349d]
+2026-04-20T16:49:26.181+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(18851826<open>)] for JPA transaction
+2026-04-20T16:49:26.181+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Participating in existing transaction
+2026-04-20T16:49:26.183+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-5] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [89883a8a-ac8b-4a5f-9fcc-e775962c349d]
+2026-04-20T16:49:26.186+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(18851826<open>)] for JPA transaction
+2026-04-20T16:49:26.186+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Participating in existing transaction
+2026-04-20T16:49:26.195+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2026-04-20T16:49:26.195+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(18851826<open>)]
+2026-04-20T16:49:26.198+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2026-04-20T16:49:26.199+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-20T16:49:26.200+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] m.m.a.RequestResponseBodyMethodProcessor : Writing [Patient(id=89883a8a-ac8b-4a5f-9fcc-e775962c349d, username=jdoe_patient, email=johndoe@example.com, f (truncated)...]
+2026-04-20T16:49:26.201+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:26.202+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-5] o.s.web.servlet.DispatcherServlet        : Completed 200 OK
+2026-04-20T16:49:36.172+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Securing GET /api/v1/hospital-admins
+2026-04-20T16:49:36.175+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-6] c.s.h.security.TokenProvider             : validated token
+2026-04-20T16:49:36.176+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [org.springframework.data.jpa.repository.support.SimpleJpaRepository.findById]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-04-20T16:49:36.176+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Opened new EntityManager [SessionImpl(1340793794<open>)] for JPA transaction
+2026-04-20T16:49:36.178+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@7b77db37]
+2026-04-20T16:49:36.179+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind              : binding parameter (1:UUID) <- [87284eda-0b7c-4495-928d-a13c41402745]
+2026-04-20T16:49:36.182+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2026-04-20T16:49:36.182+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(1340793794<open>)]
+2026-04-20T16:49:36.184+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Closing JPA EntityManager after transaction
+2026-04-20T16:49:36.184+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-6] c.s.h.security.CustomUserDetailsService  : Found User with id 87284eda-0b7c-4495-928d-a13c41402745
+2026-04-20T16:49:36.185+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.security.web.FilterChainProxy        : Secured GET /api/v1/hospital-admins
+2026-04-20T16:49:36.185+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : GET "/api/v1/hospital-admins", parameters={}
+2026-04-20T16:49:36.185+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to com.shanalert.hospitalalert.controller.HospitalAdminController#getAllPaged(Pageable)
+2026-04-20T16:49:36.185+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.j.s.OpenEntityManagerInViewInterceptor : Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:36.188+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(884336871<open>)] for JPA transaction
+2026-04-20T16:49:36.188+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Creating new transaction with name [com.shanalert.hospitalalert.service.HospitalAdminService.findAllPaged]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT,readOnly
+2026-04-20T16:49:36.189+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@79f8395e]
+2026-04-20T16:49:36.189+03:00  INFO 48307 --- [hospitalalert] [http-nio-8080-exec-6] c.s.h.service.HospitalAdminService       : Fetching paginated Hospital Admins: Page 0, Size 10
+2026-04-20T16:49:36.189+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Found thread-bound EntityManager [SessionImpl(884336871<open>)] for JPA transaction
+2026-04-20T16:49:36.189+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Participating in existing transaction
+2026-04-20T16:49:36.202+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind              : binding parameter (1:INTEGER) <- [0]
+2026-04-20T16:49:36.203+03:00 TRACE 48307 --- [hospitalalert] [http-nio-8080-exec-6] org.hibernate.orm.jdbc.bind              : binding parameter (2:INTEGER) <- [10]
+2026-04-20T16:49:36.205+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Initiating transaction commit
+2026-04-20T16:49:36.205+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Committing JPA transaction on EntityManager [SessionImpl(884336871<open>)]
+2026-04-20T16:49:36.207+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.orm.jpa.JpaTransactionManager        : Not closing pre-bound JPA EntityManager after transaction
+2026-04-20T16:49:36.208+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] m.m.a.RequestResponseBodyMethodProcessor : Using 'application/json', given [*/*] and supported [application/json, application/*+json]
+2026-04-20T16:49:36.208+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] m.m.a.RequestResponseBodyMethodProcessor : Writing [Page 1 of 1 containing com.shanalert.hospitalalert.entity.HospitalAdmin instances]
+2026-04-20T16:49:36.209+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.j.s.OpenEntityManagerInViewInterceptor : Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2026-04-20T16:49:36.209+03:00 DEBUG 48307 --- [hospitalalert] [http-nio-8080-exec-6] o.s.web.servlet.DispatcherServlet        : Completed 200 OK

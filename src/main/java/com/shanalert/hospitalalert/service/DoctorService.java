@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.service;
 
+import com.shanalert.hospitalalert.dto.DoctorUpdateDto;
 import com.shanalert.hospitalalert.entity.Doctor;
 import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.entity.User;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -60,26 +62,35 @@ public class DoctorService {
     }
 
     @Transactional
-    public Doctor updateDoctorProfile(UUID userId, Doctor updateData, UUID newHospitalId) {
-        Doctor existing = findById(userId);
+    public Doctor updateDoctorProfile(UUID userId, DoctorUpdateDto dto, UUID actorId) {
+        Doctor existing = findById(userId); // Uses your JIT logic to fetch/sync
 
-        // Update profile-specific identity fields if provided
-        if (updateData.getFirstName() != null) existing.setFirstName(updateData.getFirstName());
-        if (updateData.getLastName() != null) existing.setLastName(updateData.getLastName());
-        if (updateData.getPhoneNumber() != null) existing.setPhoneNumber(updateData.getPhoneNumber());
-        if (updateData.getGender() != null) existing.setGender(updateData.getGender());
+        // 1. Update Identity Fields
+        if (dto.firstName() != null) existing.setFirstName(dto.firstName());
+        if (dto.lastName() != null) existing.setLastName(dto.lastName());
+        if (dto.phoneNumber() != null) existing.setPhoneNumber(dto.phoneNumber());
+        if (dto.gender() != null) existing.setGender(dto.gender());
 
-        // Add Doctor-specific fields (e.g., Specialization) if your entity has them
-        // if (updateData.getSpecialization() != null) existing.setSpecialization(updateData.getSpecialization());
+        // 2. Update Professional Fields
+        if (dto.medicalLicenseNumber() != null) existing.setMedicalLicenseNumber(dto.medicalLicenseNumber());
+        if (dto.specialization() != null) existing.setSpecialization(dto.specialization());
+        if (dto.qualifications() != null) existing.setQualifications(dto.qualifications());
+        if (dto.yearsOfExperience() != null) existing.setYearsOfExperience(dto.yearsOfExperience());
+        if (dto.department() != null) existing.setDepartment(dto.department());
+        if (dto.isAvailable() != null) existing.setIsAvailable(dto.isAvailable());
 
-        if (newHospitalId != null) {
-            Hospital hospital = hospitalRepository.findById(newHospitalId)
+        // 3. Update Hospital Associations (ManyToMany)
+        if (dto.newHospitalId() != null) {
+            Hospital hospital = hospitalRepository.findById(dto.newHospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
             if (!existing.getHospitals().contains(hospital)) {
                 existing.getHospitals().add(hospital);
-                log.info("Added Hospital {} to Doctor {}", hospital.getName(), userId);
             }
         }
+
+        existing.setUpdatedBy(actorId);
+        existing.setUpdatedAt(LocalDateTime.now());
 
         return doctorRepository.save(existing);
     }

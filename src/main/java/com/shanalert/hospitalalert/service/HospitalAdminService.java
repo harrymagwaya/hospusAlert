@@ -1,6 +1,7 @@
 package com.shanalert.hospitalalert.service;
 
 
+import com.shanalert.hospitalalert.dto.HospitalAdminUpdateDto;
 import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.entity.HospitalAdmin;
 import com.shanalert.hospitalalert.entity.Patient;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -71,21 +73,25 @@ public class HospitalAdminService {
 
 
     @Transactional
-    public HospitalAdmin updateAdminProfile(UUID userId, HospitalAdmin updateData, UUID newHospitalId) {
+    public HospitalAdmin updateAdminProfile(UUID userId, HospitalAdminUpdateDto dto, UUID actorId) {
+        // findById already contains your JIT logic if you want it
         HospitalAdmin existing = findById(userId);
 
-        // Update identity fields if provided
-        if (updateData.getFirstName() != null) existing.setFirstName(updateData.getFirstName());
-        if (updateData.getLastName() != null) existing.setLastName(updateData.getLastName());
-        if (updateData.getPhoneNumber() != null) existing.setPhoneNumber(updateData.getPhoneNumber());
-        if (updateData.getGender() != null) existing.setGender(updateData.getGender());
+        // Partial updates from DTO
+        if (dto.firstName() != null) existing.setFirstName(dto.firstName());
+        if (dto.lastName() != null) existing.setLastName(dto.lastName());
+        if (dto.phoneNumber() != null) existing.setPhoneNumber(dto.phoneNumber());
+        if (dto.gender() != null) existing.setGender(dto.gender());
 
-        // Update the "Top Up" (The Hospital Link)
-        if (newHospitalId != null) {
-            Hospital newHospital = hospitalRepository.findById(newHospitalId)
+        // Update Hospital Link if provided
+        if (dto.hospitalId() != null) {
+            Hospital newHospital = hospitalRepository.findById(dto.hospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("New Hospital not found"));
             existing.setHospital(newHospital);
         }
+
+        existing.setUpdatedBy(actorId);
+        existing.setUpdatedAt(LocalDateTime.now());
 
         return hospitalAdminRepository.save(existing);
     }
