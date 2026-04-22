@@ -36,7 +36,7 @@ public class Hospital extends Auditable {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
-    @OneToMany(mappedBy = "hospitalId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "hospitalId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Bed> beds;
 
     @Enumerated(EnumType.STRING)

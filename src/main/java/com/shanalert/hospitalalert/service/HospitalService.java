@@ -2,6 +2,7 @@ package com.shanalert.hospitalalert.service;
 
 import com.shanalert.hospitalalert.dto.*;
 import com.shanalert.hospitalalert.entity.*;
+import com.shanalert.hospitalalert.mapper.BedMapper;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.model.EmergencyType;
@@ -48,6 +49,9 @@ public class HospitalService {
 
     @Autowired
     private BedRepository bedRepository;
+
+    @Autowired
+    private BedMapper bedMapper;
 
 
 
@@ -257,6 +261,22 @@ public class HospitalService {
                 .toList();
     }
 
+    @Transactional
+    public void removeBedFromHospital(UUID hospitalId, UUID bedId) {
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
+        // Check if the bed actually belongs to this hospital before trying to remove
+        boolean removed = hospital.getBeds().removeIf(bed -> bed.getId().equals(bedId));
+
+        if (!removed) {
+            throw new EntityNotFoundException("Bed " + bedId + " not found in Hospital " + hospitalId);
+        }
+
+        // When the method exits, Hibernate flushes the change and deletes the orphan.
+        log.info("Bed {} removed from Hospital {}", bedId, hospitalId);
+    }
+
 
     // Helper to map Entity to Response
     private HospitalResponse mapToResponse(Hospital hospital) {
@@ -265,7 +285,11 @@ public class HospitalService {
                 .name(hospital.getName())
                 .licenseNumber(hospital.getLicenseNumber())
                 .status(hospital.getStatus())
-                .city(hospital.getAddress().getCity())
+                .beds(hospital.getBeds() != null ?
+                        hospital.getBeds().stream()
+                                .map(bed -> bedMapper.toDto(bed, "Mapped from Hospital"))
+                                .toList() : List.of()) // Fix: properly close stream and handle nulls
+                .city(hospital.getAddress() != null ? hospital.getAddress().getCity() : "Unknown")
                 .isEmergencyReady(hospital.getIsEmergencyReady())
                 .build();
     }

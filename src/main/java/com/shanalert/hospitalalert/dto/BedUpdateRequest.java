@@ -7,11 +7,12 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
+
 public record BedUpdateRequest(
         @NotNull(message = "Bed ID is required")
         UUID bedId,
 
-        String bedNumber,
+//        String bedNumber,
         BedType bedType,
         BedStatus status
 ) {}

@@ -9,6 +9,7 @@ import com.shanalert.hospitalalert.mapper.BedMapper;
 import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.repository.BedRepository;
+import com.shanalert.hospitalalert.repository.HospitalRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,11 +32,18 @@ public class BedService {
     @Autowired
     private BedMapper bedMapper;
 
+    @Autowired
+    private HospitalRepository hospitalRepository;
+
     @Transactional
-    public void createBeds(BedCreateRequest request) {
+    public void createBeds(BedCreateRequest request, UUID hospitalId) {
+
+        Hospital hospital = hospitalRepository.findById(hospitalId)
+                .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
         // 1. Check how many beds of this type already exist for this hospital
         List<Bed> existingBeds = bedRepository.findByHospitalIdAndBedType(
-                request.hospitalId(),
+                hospital.getId(),
                 request.bedType()
         );
         int currentCount = existingBeds.size();
@@ -44,11 +52,11 @@ public class BedService {
         if (request.totalCount() > currentCount) {
             int amountToAdd = request.totalCount() - currentCount;
 
-            log.info("Adding {} new {} beds to hospital {}", amountToAdd, request.bedType(), request.hospitalId());
+            log.info("Adding {} new {} beds to hospital {}", amountToAdd, request.bedType(), hospitalId);
 
             for (int i = 0; i < amountToAdd; i++) {
                 Bed bed = new Bed();
-                bed.setHospitalId(request.hospitalId());
+                bed.setHospital(hospital);
                 bed.setBedType(request.bedType());
                 bed.setStatus(BedStatus.AVAILABLE);
 
@@ -78,16 +86,38 @@ public class BedService {
     }
 
     @Transactional
-    public BedResponse updateBed(BedUpdateRequest request, UUID actorId) {
+    public BedResponse updateBed(UUID hospitalId, BedUpdateRequest request, UUID actorId) {
 
-        Bed existingBed = bedRepository.findById(request.bedId())
+        // 1. Validate hospital exists (IMPORTANT)
+        // Ideally via hospitalRepository.existsById(...)
+        if (!hospitalRepository.existsById(hospitalId)) {
+            throw new EntityNotFoundException("Hospital not found");
+        }
+
+        // 2. Fetch bed
+        Bed bed = bedRepository.findById(request.bedId())
                 .orElseThrow(() -> new EntityNotFoundException("Bed not found"));
 
-        bedMapper.toEntity(request, existingBed);
-        Bed updatedBed = bedRepository.save(existingBed);
-        log.info("Updated bed successfully by {}", actorId);
+        // 3. SECURITY CHECK: Ensure bed belongs to hospital
+        if (!bed.getHospital().getId().equals(hospitalId)) {
+            throw new IllegalStateException("Bed does not belong to this hospital");
+        }
 
-        return bedMapper.toDto(updatedBed, "Bed updated successfully.");
+        // 4. PATCH logic (only update non-null fields)
+        if (request.bedType() != null) {
+            bed.setBedType(request.bedType());
+        }
+
+        if (request.status() != null) {
+            bed.setStatus(request.status());
+        }
+
+        // 5. Save
+        Bed updated = bedRepository.save(bed);
+
+        log.info("Bed {} updated by {} in hospital {}", bed.getId(), actorId, hospitalId);
+
+        return bedMapper.toDto(updated, "Bed updated successfully");
     }
 
 
@@ -126,5 +156,47 @@ public class BedService {
         return bedRepository.countAvailableBeds(hospitalId, neededBed);
     }
 
+
+    /**
+     * Fetches a bed only if it belongs to the specified hospital.
+     * This prevents cross-hospital data leakage.
+     */
+    @Transactional(readOnly = true)
+    public Bed getBedByIdScoped(UUID bedId, UUID hospitalId) {
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new EntityNotFoundException("Bed with ID " + bedId + " not found"));
+
+        // Validation moved to service layer
+        if (!bed.getHospital().getId().equals(hospitalId)) {
+            log.error("Security Alert: Attempt to access Bed {} from wrong Hospital {}", bedId, hospitalId);
+            throw new IllegalStateException("Bed does not belong to the specified hospital");
+        }
+
+        return bed;
+    }
+
+    @Transactional
+    public BedResponse updateBedScoped(UUID hospitalId, UUID bedId, BedUpdateRequest request, UUID actorId) {
+        // 1. Fetch the bed
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new EntityNotFoundException("Bed not found"));
+
+        // 2. Security Check: Does this bed belong to THIS hospital?
+        if (!bed.getHospital().getId().equals(hospitalId)) {
+            log.error("Unauthorized edit attempt! Actor {} tried to edit Bed {} under wrong Hospital {}",
+                    actorId, bedId, hospitalId);
+            throw new IllegalStateException("This bed does not belong to the specified hospital.");
+        }
+
+        // 3. Map updates from DTO to Entity
+        // Using your existing mapper logic
+        bedMapper.toEntity(request, bed);
+
+        // 4. Save and return
+        Bed updatedBed = bedRepository.save(bed);
+        log.info("Bed {} updated by Admin {}", bedId, actorId);
+
+        return bedMapper.toDto(updatedBed, "Bed updated successfully.");
+    }
 
 }

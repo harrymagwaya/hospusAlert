@@ -33,6 +33,18 @@ public class HospitalController {
         return hospitalService.patchHospital(id, request);
     }
 
+    @GetMapping("/{id}")
+    public HospitalResponse getById(
+            @PathVariable UUID id) {
+        return hospitalService.findById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteById(
+            @PathVariable UUID id) {
+        hospitalService.deleteHospital(id);
+    }
+
     @GetMapping
     public Page<HospitalResponse> getAllHospitalsPage(
             @PageableDefault(page = 0, size = 10, sort = "name", direction = Sort.Direction.ASC)
@@ -64,4 +76,11 @@ public class HospitalController {
     ) {
         return hospitalService.getBedOccupancy(hospitalId);
     }
+
+    @DeleteMapping("/{hospitalId}/beds/{bedId}/remove")
+    private void deleteHospitalBed(@PathVariable UUID hospitalId, @PathVariable UUID bedId){
+        hospitalService.removeBedFromHospital(hospitalId, bedId);
+    }
+
+
 }

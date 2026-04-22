@@ -26,10 +26,14 @@ public class Bed extends Auditable {
     @Column(name = "bed_id", updatable = false, nullable = false)
     private UUID id;
 
-    // Link back to the hospital
-    @JdbcTypeCode(Types.VARCHAR)
-    @Column(name = "hospital_id", nullable = false)
-    private UUID hospitalId;
+//    // Link back to the hospital
+//    @JdbcTypeCode(Types.VARCHAR)
+//    @Column(name = "hospital_id", nullable = false)
+//    private UUID hospitalId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "hospital_id", nullable = false)
+    private Hospital hospital;
 
     @Column(nullable = false)
     private String bedNumber; // Human-readable (e.g., "SURGERY-101")

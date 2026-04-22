@@ -26,9 +26,9 @@ public class BedMapper {
     public void toEntity(BedUpdateRequest dto, Bed existingBed) {
         if (dto == null || existingBed == null) return;
 
-        if (dto.bedNumber() != null) {
-            existingBed.setBedNumber(dto.bedNumber());
-        }
+//        if (dto.bedNumber() != null) {
+//            existingBed.setBedNumber(dto.bedNumber());
+//        }
 
         if (dto.bedType() != null) {
             existingBed.setBedType(dto.bedType());
