@@ -22,42 +22,64 @@ public class HospitalAdminController {
 
     private final HospitalAdminService hospitalAdminService;
 
-    // READ ONE
-    @GetMapping("/{userId}")
-    public HospitalAdmin getById(@PathVariable UUID userId) {
-        return hospitalAdminService.findById(userId);
-    }
-
-    @GetMapping // Specific path for paginated results
-    public Page<HospitalAdmin> getAllPaged(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC) Pageable pageable) {
+    // GET ALL HOSPITAL ADMINS
+    // This fetches users with HOSPITAL_ADMIN role and lazy-creates/syncs profiles.
+    @GetMapping
+    public Page<HospitalAdmin> getAllHospitalAdmins(
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.ASC
+            ) Pageable pageable
+    ) {
         return hospitalAdminService.findAllPaged(pageable);
     }
 
-    // PATCH (Update data or re-link to a different hospital)
+    // GET HOSPITAL ADMIN BY USER ID
+    @GetMapping("/{userId}")
+    public HospitalAdmin getById(@PathVariable UUID userId) {
+        return hospitalAdminService.getOrCreateProfile(userId);
+    }
+
+    // UPDATE HOSPITAL ADMIN PROFILE
     @PatchMapping("/{userId}")
     public HospitalAdmin update(
             @PathVariable UUID userId,
-            @RequestBody HospitalAdminUpdateDto updateData, @RequestHeader(AppConstants.ACTOR_ID) UUID actorId) {
+            @RequestBody HospitalAdminUpdateDto updateData,
+            @RequestHeader(AppConstants.ACTOR_ID) UUID actorId
+    ) {
         return hospitalAdminService.updateAdminProfile(userId, updateData, actorId);
     }
 
+    // LINK HOSPITAL ADMIN USER TO HOSPITAL
     @PostMapping("/link/user/{userId}/hospital/{hospitalId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void linkToHospital(
             @PathVariable UUID userId,
-            @PathVariable UUID hospitalId) {
+            @PathVariable UUID hospitalId
+    ) {
         hospitalAdminService.linkUserToHospital(userId, hospitalId);
     }
 
-    // DELETE
+    // DELETE HOSPITAL ADMIN PROFILE
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID userId) {
         hospitalAdminService.removeAdminProfile(userId);
     }
 
-    @GetMapping("/{hospitalId}/admin")
-    public List<HospitalAdmin> findByHospitalId(@PathVariable UUID hospitalId){
+    // GET ADMINS BY HOSPITAL
+    @GetMapping("/hospital/{hospitalId}")
+    public List<HospitalAdmin> findByHospitalId(@PathVariable UUID hospitalId) {
         return hospitalAdminService.findByHospitalId(hospitalId);
+    }
+
+    // OPTIONAL: CHECK IF ADMIN BELONGS TO HOSPITAL
+    @GetMapping("/{adminId}/hospital/{hospitalId}/access")
+    public boolean checkHospitalAdminAccess(
+            @PathVariable UUID adminId,
+            @PathVariable UUID hospitalId
+    ) {
+        return hospitalAdminService.belongsToHospital(adminId, hospitalId);
     }
 }

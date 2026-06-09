@@ -3,7 +3,6 @@ package com.shanalert.hospitalalert.service;
 import com.shanalert.hospitalalert.dto.*;
 import com.shanalert.hospitalalert.entity.*;
 import com.shanalert.hospitalalert.mapper.BedMapper;
-import com.shanalert.hospitalalert.model.BedStatus;
 import com.shanalert.hospitalalert.model.BedType;
 import com.shanalert.hospitalalert.model.EmergencyType;
 import com.shanalert.hospitalalert.model.HospitalStatus;
@@ -12,12 +11,12 @@ import com.shanalert.hospitalalert.repository.BedRepository;
 import com.shanalert.hospitalalert.repository.HospitalAdminRepository;
 import com.shanalert.hospitalalert.repository.HospitalRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -27,33 +26,17 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class HospitalService {
 
-    @Autowired
-    private HospitalRepository hospitalRepository;
-
-    @Autowired
-    private HospitalAdminRepository hospitalAdminRepository;
-
-    @Autowired
-    private LocationService locationService;
-
-    @Autowired
-    private BedService bedService;
-
-    @Autowired
-    private AddressService addressService;
-
-    @Autowired
-    private BedAdmissionRepository admissionRepository;
-
-    @Autowired
-    private BedRepository bedRepository;
-
-    @Autowired
-    private BedMapper bedMapper;
-
-
+    private final HospitalRepository hospitalRepository;
+    private final HospitalAdminRepository hospitalAdminRepository;
+    private final LocationService locationService;
+    private final BedService bedService;
+    private final AddressService addressService;
+    private final BedAdmissionRepository admissionRepository;
+    private final BedRepository bedRepository;
+    private final BedMapper bedMapper;
 
     @Transactional(readOnly = true)
     public Page<HospitalResponse> getAllHospitals(Pageable pageable) {
@@ -61,55 +44,44 @@ public class HospitalService {
                 .map(this::mapToResponse);
     }
 
-
     @Transactional(readOnly = true)
     public HospitalResponse findById(UUID id) {
-        Hospital hospital = getById(id); // Uses your existing getById entity method
+        Hospital hospital = getById(id);
         return mapToResponse(hospital);
     }
 
-
-    @Transactional
-    public void deleteHospital(UUID hospitalId) {
-        // 1. Check existence
-        Hospital hospital = hospitalRepository.findById(hospitalId)
+    @Transactional(readOnly = true)
+    public Hospital getById(UUID hospitalId) {
+        return hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-
-        // 2. Clear Admin Links
-        // We use the new repository method here
-        List<HospitalAdmin> linkedAdmins = hospitalAdminRepository.findByHospitalId(hospitalId);
-
-        linkedAdmins.forEach(admin -> {
-            admin.setHospital(null); // Remove the link
-            hospitalAdminRepository.save(admin);
-        });
-
-        // 3. Now delete the hospital
-        hospitalRepository.delete(hospital);
     }
-
 
     @Transactional
     public HospitalResponse addHospital(HospitalRequest request) {
         log.info("Creating new hospital: {}", request.getName());
 
-        // 1. Save the Address using the AddressService
-        Address savedAddress = addressService.saveAddress(request.getAddress());
+        Address savedAddress = null;
 
-        // 2. Map Request to Entity using Builder
+        if (request.getAddress() != null) {
+            savedAddress = addressService.saveAddress(request.getAddress());
+        }
+
         Hospital hospital = Hospital.builder()
                 .name(request.getName())
                 .licenseNumber(request.getLicenseNumber())
                 .address(savedAddress)
-                .icuBedsAvailable(request.getIcuBedsAvailable())
-                .isEmergencyReady(request.getIsEmergencyReady())
+                .ownershipType(request.getOwnershipType())
+                .facilityLevel(request.getFacilityLevel())
+                .isEmergencyReady(
+                        request.getIsEmergencyReady() != null
+                                ? request.getIsEmergencyReady()
+                                : true
+                )
                 .status(HospitalStatus.ACTIVE)
                 .build();
 
-        // 3. Save Hospital
         Hospital savedHospital = hospitalRepository.save(hospital);
 
-        // 4. Return the Response DTO
         return mapToResponse(savedHospital);
     }
 
@@ -118,95 +90,157 @@ public class HospitalService {
         Hospital hospital = hospitalRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
 
-        if (request.getName() != null) hospital.setName(request.getName());
-        if (request.getIcuBedsAvailable() != null) hospital.setIcuBedsAvailable(request.getIcuBedsAvailable());
-        if (request.getIsEmergencyReady() != null) hospital.setIsEmergencyReady(request.getIsEmergencyReady());
+        if (request.getName() != null) {
+            hospital.setName(request.getName());
+        }
 
-        // If the request contains address updates, delegate to AddressService
+        if (request.getLicenseNumber() != null) {
+            hospital.setLicenseNumber(request.getLicenseNumber());
+        }
+
+        if (request.getOwnershipType() != null) {
+            hospital.setOwnershipType(request.getOwnershipType());
+        }
+
+        if (request.getFacilityLevel() != null) {
+            hospital.setFacilityLevel(request.getFacilityLevel());
+        }
+
+        if (request.getIsEmergencyReady() != null) {
+            hospital.setIsEmergencyReady(request.getIsEmergencyReady());
+        }
+
+        if (request.getStatus() != null) {
+            hospital.setStatus(request.getStatus());
+        }
+
         if (request.getAddress() != null) {
-            addressService.updateAddress(hospital.getAddress().getId(), request.getAddress());
+            if (hospital.getAddress() == null) {
+                Address savedAddress = addressService.saveAddress(request.getAddress());
+                hospital.setAddress(savedAddress);
+            } else {
+                addressService.updateAddress(hospital.getAddress().getId(), request.getAddress());
+            }
         }
 
         return mapToResponse(hospitalRepository.save(hospital));
     }
 
-
-    public Hospital getById(UUID hospitalId){
+    @Transactional
+    public void deleteHospital(UUID hospitalId) {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-        return hospital;
+
+        List<HospitalAdmin> linkedAdmins = hospitalAdminRepository.findByHospitalId(hospitalId);
+
+        linkedAdmins.forEach(admin -> {
+            admin.setHospital(null);
+            hospitalAdminRepository.save(admin);
+        });
+
+        hospitalRepository.delete(hospital);
+
+        log.info("Deleted hospital {}", hospitalId);
     }
 
-
-
     @Transactional(readOnly = true)
-    public List<HospitalDiscoveryResponse> findHospitalsForEmergency(EmergencyType type, Double patientLat, Double patientLng) {
+    public List<HospitalDiscoveryResponse> findHospitalsForEmergency(
+            EmergencyType type,
+            Double patientLat,
+            Double patientLng
+    ) {
         BedType neededBed = type.getRequiredBedType();
 
-        // 1. Get all hospitals that have available beds of this type
-        // We use a custom query in BedRepository for this
         List<UUID> capableHospitalIds = bedService.getHospitalsWithAvailableCapacity(neededBed);
 
-        // 2. Fetch those hospitals and calculate distance/ETA
-        return hospitalRepository.findAllById(capableHospitalIds).stream()
-                .map(hospital -> {
-                    Integer eta = null;
-                    Double lat = null;
-                    Double lng = null;
-                    String street = "Address not listed";
-
-                    // NULL SAFETY: Check if address and coordinates exist
-                    if (hospital.getAddress() != null &&
-                            hospital.getAddress().getLatitude() != null &&
-                            hospital.getAddress().getLongitude() != null) {
-
-                        lat = hospital.getAddress().getLatitude();
-                        lng = hospital.getAddress().getLongitude();
-                        street = hospital.getAddress().getStreet();
-
-                        // Call Location Service (OSRM) inside a try-catch
-                        // so one bad coordinate doesn't crash the whole list
-                        try {
-                            eta = locationService.getEstimatedMinutes(patientLat, patientLng, lat, lng);
-                        } catch (Exception e) {
-                            log.error("Failed to calculate ETA for hospital {}: {}", hospital.getName(), e.getMessage());
-                        }
-                    }
-                    int availableCount = bedService.countAvailableBeds(hospital.getId(), neededBed);
-                    return new HospitalDiscoveryResponse(hospital.getId(), hospital.getName(), street, eta, availableCount, lat,
-                           lng);
-                })
-                .sorted(Comparator.comparing(HospitalDiscoveryResponse::estimatedMinutes,
-                        Comparator.nullsLast(Comparator.naturalOrder())))
+        return hospitalRepository.findAllById(capableHospitalIds)
+                .stream()
+                .filter(hospital -> hospital.getStatus() == HospitalStatus.ACTIVE)
+                .filter(hospital -> Boolean.TRUE.equals(hospital.getIsEmergencyReady()))
+                .map(hospital -> mapToDiscoveryResponse(hospital, neededBed, patientLat, patientLng))
+                .sorted(
+                        Comparator.comparing(
+                                HospitalDiscoveryResponse::estimatedMinutes,
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        )
+                )
                 .toList();
     }
 
+    private HospitalDiscoveryResponse mapToDiscoveryResponse(
+            Hospital hospital,
+            BedType neededBed,
+            Double patientLat,
+            Double patientLng
+    ) {
+        Integer eta = null;
+        Double lat = null;
+        Double lng = null;
+        String street = "Address not listed";
+
+        if (hospital.getAddress() != null) {
+            lat = hospital.getAddress().getLatitude();
+            lng = hospital.getAddress().getLongitude();
+
+            if (hospital.getAddress().getStreet() != null) {
+                street = hospital.getAddress().getStreet();
+            }
+        }
+
+        if (patientLat != null
+                && patientLng != null
+                && lat != null
+                && lng != null) {
+            RouteEstimateDTO routeEstimate = locationService.getRouteEstimate(
+                    patientLat,
+                    patientLng,
+                    lat,
+                    lng
+            );
+
+            eta = routeEstimate.getEstimatedMinutes();
+        }
+
+        int availableCount = bedService.countAvailableBeds(hospital.getId(), neededBed);
+
+        return new HospitalDiscoveryResponse(
+                hospital.getId(),
+                hospital.getName(),
+                street,
+                eta,
+                availableCount,
+                lat,
+                lng
+        );
+    }
 
     @Transactional(readOnly = true)
     public List<BedOccupancyResponse> getBedOccupancy(UUID hospitalId) {
+        if (!hospitalRepository.existsById(hospitalId)) {
+            throw new EntityNotFoundException("Hospital not found");
+        }
 
-        // 1. Get all beds in hospital
-        List<Bed> beds = bedRepository.findAllByHospitalId(hospitalId);
+        List<Bed> beds = bedRepository.findAllByHospital_Id(hospitalId);
 
         List<UUID> bedIds = beds.stream()
                 .map(Bed::getId)
                 .toList();
 
-        // 2. Get active admissions
-        List<BedAdmission> admissions =
-                admissionRepository.findActiveAdmissionsForBeds(bedIds);
+        if (bedIds.isEmpty()) {
+            return List.of();
+        }
 
-        // 3. Map: bedId → admission
+        List<BedAdmission> admissions = admissionRepository.findActiveAdmissionsForBeds(bedIds);
+
         Map<UUID, BedAdmission> admissionMap = admissions.stream()
                 .collect(Collectors.toMap(
-                        ba -> ba.getBed().getId(),
-                        ba -> ba
+                        admission -> admission.getBed().getId(),
+                        admission -> admission,
+                        (existing, duplicate) -> existing
                 ));
 
-        // 4. Build response
         return beds.stream()
                 .map(bed -> {
-
                     BedAdmission admission = admissionMap.get(bed.getId());
 
                     UUID patientId = null;
@@ -216,12 +250,6 @@ public class HospitalService {
                     if (admission != null) {
                         patientId = admission.getPatientId();
                         admissionStatus = admission.getStatus().name();
-
-                        // OPTIONAL: fetch patient
-                        // (optimize later with join)
-                        // Example:
-                        // Patient p = patientRepo.findById(patientId).orElse(null);
-                        // patientName = p != null ? p.getFirstName() + " " + p.getLastName() : null;
                     }
 
                     return new BedOccupancyResponse(
@@ -237,23 +265,24 @@ public class HospitalService {
                 .toList();
     }
 
-
     @Transactional(readOnly = true)
     public List<HospitalPatientResponse> getPatientsInHospital(UUID hospitalId) {
+        if (!hospitalRepository.existsById(hospitalId)) {
+            throw new EntityNotFoundException("Hospital not found");
+        }
 
         List<BedAdmission> admissions =
                 admissionRepository.findActiveAdmissionsByHospital(hospitalId);
 
         return admissions.stream()
                 .map(admission -> {
-
                     Bed bed = admission.getBed();
 
                     return new HospitalPatientResponse(
                             admission.getPatientId(),
                             admission.getId(),
-                            bed.getBedNumber(),
-                            bed.getBedType().name(),
+                            bed != null ? bed.getBedNumber() : "Unassigned",
+                            bed != null ? bed.getBedType().name() : null,
                             admission.getStatus().name(),
                             admission.getAdmittedAt()
                     );
@@ -266,32 +295,39 @@ public class HospitalService {
         Hospital hospital = hospitalRepository.findById(hospitalId)
                 .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
 
-        // Check if the bed actually belongs to this hospital before trying to remove
-        boolean removed = hospital.getBeds().removeIf(bed -> bed.getId().equals(bedId));
+        Bed bed = bedRepository.findById(bedId)
+                .orElseThrow(() -> new EntityNotFoundException("Bed not found"));
 
-        if (!removed) {
-            throw new EntityNotFoundException("Bed " + bedId + " not found in Hospital " + hospitalId);
+        if (bed.getHospital() == null || !bed.getHospital().getId().equals(hospitalId)) {
+            throw new IllegalStateException("Bed does not belong to this hospital");
         }
 
-        // When the method exits, Hibernate flushes the change and deletes the orphan.
+        if (bed.getStatus() == com.shanalert.hospitalalert.model.BedStatus.OCCUPIED
+                || bed.getStatus() == com.shanalert.hospitalalert.model.BedStatus.RESERVED) {
+            throw new IllegalStateException("Cannot remove a bed that is currently occupied or reserved");
+        }
+
+        hospital.getBeds().removeIf(existingBed -> existingBed.getId().equals(bedId));
+        bedRepository.delete(bed);
+
         log.info("Bed {} removed from Hospital {}", bedId, hospitalId);
     }
 
-
-    // Helper to map Entity to Response
     private HospitalResponse mapToResponse(Hospital hospital) {
         return HospitalResponse.builder()
                 .id(hospital.getId())
                 .name(hospital.getName())
                 .licenseNumber(hospital.getLicenseNumber())
                 .status(hospital.getStatus())
-                .beds(hospital.getBeds() != null ?
-                        hospital.getBeds().stream()
-                                .map(bed -> bedMapper.toDto(bed, "Mapped from Hospital"))
-                                .toList() : List.of()) // Fix: properly close stream and handle nulls
+                .ownershipType(hospital.getOwnershipType())
+                .facilityLevel(hospital.getFacilityLevel())
+                .beds(hospital.getBeds() != null
+                        ? hospital.getBeds().stream()
+                        .map(bed -> bedMapper.toDto(bed, "Mapped from Hospital"))
+                        .toList()
+                        : List.of())
                 .city(hospital.getAddress() != null ? hospital.getAddress().getCity() : "Unknown")
                 .isEmergencyReady(hospital.getIsEmergencyReady())
                 .build();
     }
-
 }

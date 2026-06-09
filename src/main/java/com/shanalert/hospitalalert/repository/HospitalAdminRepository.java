@@ -11,4 +11,7 @@ import java.util.UUID;
 public interface HospitalAdminRepository extends JpaRepository<HospitalAdmin, UUID> {
     List<HospitalAdmin> findByHospitalId(UUID hospitalId);
 
+    boolean existsByIdAndHospital_Id(UUID adminId, UUID hospitalId);
+
+
 }

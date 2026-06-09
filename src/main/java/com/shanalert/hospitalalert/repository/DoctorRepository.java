@@ -14,4 +14,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     @Query("SELECT d FROM Doctor d JOIN d.hospitals h WHERE h.id = :hospitalId")
     List<Doctor> findByHospitalId(@Param("hospitalId") UUID hospitalId);
+
+    boolean existsByIdAndHospitals_Id(UUID doctorId, UUID hospitalId);
 }

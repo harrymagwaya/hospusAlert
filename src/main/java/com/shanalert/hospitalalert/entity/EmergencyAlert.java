@@ -3,12 +3,10 @@ package com.shanalert.hospitalalert.entity;
 import com.shanalert.hospitalalert.model.AlertStatus;
 import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.BedType;
-
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.JdbcTypeCode;
-import java.sql.Types;
+
 import java.util.UUID;
 
 @SuperBuilder
@@ -16,7 +14,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@EqualsAndHashCode(callSuper=false)
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "emergency_alerts")
 public class EmergencyAlert extends Auditable {
 
@@ -24,11 +22,9 @@ public class EmergencyAlert extends Auditable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @JdbcTypeCode(Types.VARCHAR)
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @JdbcTypeCode(Types.VARCHAR)
     @Column(name = "hospital_id", nullable = false)
     private UUID hospitalId;
 
@@ -38,12 +34,20 @@ public class EmergencyAlert extends Auditable {
     @Enumerated(EnumType.STRING)
     private AlertStatus status;
 
-    // --- Critical Triage Info ---
+    // --- Route / ETA Info ---
     private Integer estimatedArrivalTimeMinutes;
 
+    private Double estimatedDistanceKm;
+
+    /**
+     * Example values:
+     * OSRM
+     * DISTANCE_FALLBACK
+     */
+    private String etaSource;
+
     @Column(columnDefinition = "TEXT")
-    private String patientNotes; // e.g., "Difficulty breathing, chest pain"
+    private String patientNotes;
 
     private UUID admissionId;
-
 }

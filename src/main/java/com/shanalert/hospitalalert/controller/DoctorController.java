@@ -1,10 +1,9 @@
 package com.shanalert.hospitalalert.controller;
 
-import com.shanalert.hospitalalert.dto.DoctorUpdateDto; // Create a similar Record/DTO for Doctor
+import com.shanalert.hospitalalert.dto.DoctorUpdateDto;
 import com.shanalert.hospitalalert.entity.Doctor;
 import com.shanalert.hospitalalert.service.DoctorService;
 import com.shanalert.hospitalalert.util.AppConstants;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,64 +22,75 @@ public class DoctorController {
 
     private final DoctorService doctorService;
 
-    // --- READ OPERATIONS ---
-
-    @GetMapping("/{userId}")
-    public Doctor getById(@PathVariable UUID userId) {
-        return doctorService.findById(userId);
-    }
-
+    // GET ALL DOCTORS
+    // This fetches users with role DOCTOR and lazy-creates/syncs Doctor profiles.
     @GetMapping
-    public Page<Doctor> getAllPaged(
-            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    public Page<Doctor> getAllDoctors(
+            @PageableDefault(
+                    size = 10,
+                    sort = "createdAt",
+                    direction = Sort.Direction.ASC
+            ) Pageable pageable
+    ) {
         return doctorService.findAllPaged(pageable);
     }
 
-    /**
-     * Search doctors by hospital.
-     * Uses the "/hospital/" segment to avoid ambiguity with getById.
-     */
-    @GetMapping("/hospital/{hospitalId}")
-    public List<Doctor> getByHospital(@PathVariable UUID hospitalId) {
-        return doctorService.findByHospitalId(hospitalId);
+    // GET DOCTOR BY USER ID
+    // This will lazy-create the Doctor profile if the User has role DOCTOR.
+    @GetMapping("/{userId}")
+    public Doctor getDoctorById(@PathVariable UUID userId) {
+        return doctorService.findById(userId);
     }
 
-    // --- WRITE OPERATIONS ---
-
-    /**
-     * LINKING: Assigns a User to a Hospital as a Doctor.
-     * URI: POST /api/v1/doctors/link/user/{userId}/hospital/{hospitalId}
-     */
-    @PostMapping("/link/user/{userId}/hospital/{hospitalId}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void linkToHospital(
-            @PathVariable UUID userId,
-            @PathVariable UUID hospitalId) {
-        doctorService.linkUserToHospital(userId, hospitalId);
-    }
-
-    /**
-     * UPDATE: Updates professional details or adds a new hospital association.
-     */
+    // UPDATE DOCTOR PROFILE
     @PatchMapping("/{userId}")
-    public Doctor update(
+    public Doctor updateDoctor(
             @PathVariable UUID userId,
-            @Valid @RequestBody DoctorUpdateDto updateData, // Or use a DoctorUpdateDto
-            @RequestHeader(AppConstants.ACTOR_ID) UUID actorId) {
+            @RequestBody DoctorUpdateDto updateData,
+            @RequestHeader(AppConstants.ACTOR_ID) UUID actorId
+    ) {
         return doctorService.updateDoctorProfile(userId, updateData, actorId);
     }
 
-    // --- DELETE / DEACTIVATE ---
+    // LINK DOCTOR USER TO HOSPITAL
+    @PostMapping("/link/user/{userId}/hospital/{hospitalId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void linkDoctorToHospital(
+            @PathVariable UUID userId,
+            @PathVariable UUID hospitalId
+    ) {
+        doctorService.linkUserToHospital(userId, hospitalId);
+    }
 
+    // UNLINK DOCTOR FROM HOSPITAL
+    @DeleteMapping("/{doctorId}/hospital/{hospitalId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unlinkDoctorFromHospital(
+            @PathVariable UUID doctorId,
+            @PathVariable UUID hospitalId
+    ) {
+        doctorService.unlinkDoctorFromHospital(doctorId, hospitalId);
+    }
+
+    // DELETE DOCTOR PROFILE
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable UUID userId) {
+    public void deleteDoctor(@PathVariable UUID userId) {
         doctorService.removeDoctorProfile(userId);
     }
 
-    @PostMapping("/{userId}/deactivate")
-    @ResponseStatus(HttpStatus.OK)
-    public void deactivate(@PathVariable UUID userId) {
-        doctorService.deactivateProfile(userId);
+    // GET DOCTORS BY HOSPITAL
+    @GetMapping("/hospital/{hospitalId}")
+    public List<Doctor> getDoctorsByHospital(@PathVariable UUID hospitalId) {
+        return doctorService.findByHospitalId(hospitalId);
+    }
+
+    // OPTIONAL: CHECK IF DOCTOR BELONGS TO HOSPITAL
+    @GetMapping("/{doctorId}/hospital/{hospitalId}/access")
+    public boolean checkDoctorHospitalAccess(
+            @PathVariable UUID doctorId,
+            @PathVariable UUID hospitalId
+    ) {
+        return doctorService.belongsToHospital(doctorId, hospitalId);
     }
 }

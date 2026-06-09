@@ -1,8 +1,8 @@
 package com.shanalert.hospitalalert.service;
 
-import com.shanalert.hospitalalert.dto.BedResponse;
 import com.shanalert.hospitalalert.dto.EmergencyAlertRequest;
 import com.shanalert.hospitalalert.dto.EmergencyAlertResponse;
+import com.shanalert.hospitalalert.dto.RouteEstimateDTO;
 import com.shanalert.hospitalalert.entity.BedAdmission;
 import com.shanalert.hospitalalert.entity.EmergencyAlert;
 import com.shanalert.hospitalalert.entity.Hospital;
@@ -10,8 +10,8 @@ import com.shanalert.hospitalalert.mapper.EmergencyAlertMapper;
 import com.shanalert.hospitalalert.model.AlertStatus;
 import com.shanalert.hospitalalert.repository.EmergencyAlertRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,27 +19,14 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmergencyAlertService {
 
-    @Autowired
-    private HospitalService hospitalService;
-
-    @Autowired
-    private EmergencyAlertMapper alertMapper;
-
-    @Autowired
-    private LocationService locationService;
-
-    @Autowired
-    private BedService bedService;
-
-    @Autowired
-    private EmergencyAlertRepository alertRepository;
-
-    @Autowired
-    private BedAdmissionService bedAdmissionService;
-
-
+    private final HospitalService hospitalService;
+    private final EmergencyAlertMapper alertMapper;
+    private final LocationService locationService;
+    private final BedAdmissionService bedAdmissionService;
+    private final EmergencyAlertRepository alertRepository;
 
     @Transactional
     public EmergencyAlertResponse triggerAlert(EmergencyAlertRequest request) {
@@ -47,28 +34,27 @@ public class EmergencyAlertService {
         log.info("Emergency Alert triggered for Patient: {} -> Hospital: {}",
                 request.patientId(), request.hospitalId());
 
-        // 1. Get Hospital & Location Details
         Hospital hospital = hospitalService.getById(request.hospitalId());
 
-        // Ensure the hospital has coordinates set
-        if (hospital.getAddress() == null || hospital.getAddress().getLatitude() == null) {
+        if (hospital.getAddress() == null
+                || hospital.getAddress().getLatitude() == null
+                || hospital.getAddress().getLongitude() == null) {
             throw new IllegalStateException("Hospital address or coordinates are missing.");
         }
-//         1. Logic for OSRM ETA calculation (omitted for brevity)
-        Integer eta = null;
 
-        try {
-            eta = locationService.getEstimatedMinutes(request.patientLat(), request.patientLng(), hospital.getAddress().getLatitude(),
-                    hospital.getAddress().getLongitude() );
-        }catch (Exception e) {
-            log.error("OSRM Service unreachable, proceeding without ETA");
-        }
+        RouteEstimateDTO routeEstimate = locationService.getRouteEstimate(
+                request.patientLat(),
+                request.patientLng(),
+                hospital.getAddress().getLatitude(),
+                hospital.getAddress().getLongitude()
+        );
 
-        // 2. Initialize the Alert
         EmergencyAlert alert = new EmergencyAlert();
         alert.setPatientId(request.patientId());
         alert.setHospitalId(request.hospitalId());
-        alert.setEstimatedArrivalTimeMinutes(eta);
+        alert.setEstimatedArrivalTimeMinutes(routeEstimate.getEstimatedMinutes());
+        alert.setEstimatedDistanceKm(routeEstimate.getDistanceKm());
+        alert.setEtaSource(routeEstimate.getSource());
         alert.setRequestedBedType(request.requestedBedType());
         alert.setPatientNotes(request.patientNotes());
 
@@ -83,40 +69,40 @@ public class EmergencyAlertService {
             );
 
             alert.setAdmissionId(reservedBed.getId());
-            alert.setStatus(AlertStatus.ON_THE_WAY); // Using your new status!
+            alert.setStatus(AlertStatus.ON_THE_WAY);
 
             bedNumber = reservedBed.getBed().getBedNumber();
-            statusMessage = "Ambulance dispatched. Bed " + bedNumber + " is ON THE WAY.";
+            statusMessage = "Ambulance dispatched. Bed " + bedNumber + " is reserved.";
 
         } catch (Exception e) {
             log.error("Failed to reserve bed during alert trigger: {}", e.getMessage());
+
             alert.setStatus(AlertStatus.FAILED);
             statusMessage = "Alert logged, but no beds were found. Redirecting to backup.";
         }
 
         EmergencyAlert savedAlert = alertRepository.save(alert);
+
         return alertMapper.toDto(savedAlert, bedNumber, statusMessage);
     }
-
 
     @Transactional
     public EmergencyAlertResponse markPatientAsArrived(UUID alertId, UUID actorId) {
         log.info("Processing arrival for Alert ID: {}", alertId);
 
-        // 1. Fetch and Validate the Alert
         EmergencyAlert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("Alert not found"));
 
-        // 2. Update Alert Status
+        if (alert.getStatus() == AlertStatus.OCCUPIED) {
+            throw new IllegalStateException("Patient is already checked into a bed");
+        }
+
         alert.setStatus(AlertStatus.ARRIVED);
 
-        // 3. Update Admission & Get Bed Info
-        String bedNumber = "Unassigned"; // Default for alerts with no reserved bed
+        String bedNumber = "Unassigned";
         String statusMessage = "Patient has arrived at the facility.";
 
         if (alert.getAdmissionId() != null) {
-            // We let the Admission Service handle the logic and return the object
-            // This avoids making redundant queries in the Alert Service
             BedAdmission admission = bedAdmissionService.markAsArrived(alert.getAdmissionId(), actorId);
 
             bedNumber = admission.getBed().getBedNumber();
@@ -126,20 +112,16 @@ public class EmergencyAlertService {
             statusMessage = "Arrival logged. Warning: No bed was reserved for this patient.";
         }
 
-        // 4. Save the Alert (Auditable fields update here)
         EmergencyAlert savedAlert = alertRepository.save(alert);
 
-        // 5. Return the DTO using your mapper
         return alertMapper.toDto(savedAlert, bedNumber, statusMessage);
     }
-
 
     @Transactional
     public EmergencyAlertResponse checkInToBed(UUID alertId, UUID actorId) {
 
         log.info("Initiating Bed Check-in for Alert ID: {}", alertId);
 
-        // 1. Fetch and Validate Alert
         EmergencyAlert alert = alertRepository.findById(alertId)
                 .orElseThrow(() -> new EntityNotFoundException("Alert not found"));
 
@@ -151,18 +133,14 @@ public class EmergencyAlertService {
             throw new IllegalStateException("Patient must arrive before check-in");
         }
 
-        // 2. Confirm admission (Capturing the returned BedAdmission object)
-        // This method now updates Admission to ADMITTED and Bed to OCCUPIED
         BedAdmission admission = bedAdmissionService.confirmArrival(alert.getAdmissionId(), actorId);
 
-        // 3. Update Alert state
         alert.setStatus(AlertStatus.OCCUPIED);
+
         EmergencyAlert savedAlert = alertRepository.save(alert);
 
         log.info("Check-in complete. Alert {} is now OCCUPIED", alertId);
 
-        // 4. Return the mapped DTO
-        // We pull the bed number directly from the admission graph
         String bedLabel = admission.getBed().getBedNumber();
 
         return alertMapper.toDto(
@@ -171,5 +149,4 @@ public class EmergencyAlertService {
                 "Patient successfully checked into Bed " + bedLabel
         );
     }
-
 }

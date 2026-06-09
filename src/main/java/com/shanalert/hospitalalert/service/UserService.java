@@ -130,4 +130,9 @@ public class UserService {
 
         log.info("User {} and associated profiles deactivated.", userId);
     }
+
+    @Transactional(readOnly = true)
+    public Page<User> findUsersByRole(UserRole role, Pageable pageable) {
+        return userRepository.findByRole(role, pageable);
+    }
 }

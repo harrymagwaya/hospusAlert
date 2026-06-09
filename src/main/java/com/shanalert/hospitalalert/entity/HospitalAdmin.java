@@ -16,6 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper=false)
 @Entity
+@Table(name = "hospital_admin")
 public class HospitalAdmin extends Auditable {
 
     @Id
