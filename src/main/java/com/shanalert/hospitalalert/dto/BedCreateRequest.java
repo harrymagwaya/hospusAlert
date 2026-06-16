@@ -8,8 +8,6 @@ import java.util.UUID;
 
 
 public record BedCreateRequest(
-        @NotNull(message = "Hospital ID is required")
-        UUID hospitalId,
 
         @NotNull(message = "Please specify the department (Bed Type)")
         BedType bedType,

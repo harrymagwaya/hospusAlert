@@ -3,10 +3,16 @@ package com.shanalert.hospitalalert.model;
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Data // Or @Getter/@Setter
+@SuperBuilder // <--- This is the key
+@NoArgsConstructor
 @MappedSuperclass
 public abstract class Auditable {
 
@@ -22,7 +28,6 @@ public abstract class Auditable {
 
     @PrePersist
     protected void onCreate() {
-
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

@@ -1,10 +1,11 @@
 package com.shanalert.hospitalalert.model;
 
 public enum BedType {
-    GENERAL_WARD,
-    ICU,
-    SURGERY,
+    GENERAL,
+    MATERNITY,
     EMERGENCY,
+    SURGERY,
+    ICU,
     PEDIATRIC,
-    MATERNITY
+    SPECIALIZED
 }

@@ -1,22 +1,23 @@
 package com.shanalert.hospitalalert.entity;
 
+import com.shanalert.hospitalalert.model.Auditable;
 import com.shanalert.hospitalalert.model.Gender;
+import com.shanalert.hospitalalert.model.RelationshipType;
 import com.shanalert.hospitalalert.model.UserRole;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper=false)
 @Entity
-public class Patient {
+public class Patient extends Auditable {
 
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)
@@ -44,7 +45,7 @@ public class Patient {
     @JoinColumn(name = "address_id")
     private Address address;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private LocalDate dateOfBirth;
 
     @Enumerated(EnumType.STRING)
@@ -69,7 +70,10 @@ public class Patient {
     // --- Emergency Contact / Next of Kin ---
     private String nextOfKinName;
     private String nextOfKinPhone;
-    private String nextOfKinRelationship;
+// Inside Patient.java
+
+    @Enumerated(EnumType.STRING)
+    private RelationshipType nextOfKinRelationship;
 
     // --- Insurance & Admin ---
     private String insuranceProvider;

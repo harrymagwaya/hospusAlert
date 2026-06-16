@@ -1,5 +1,5 @@
 package com.shanalert.hospitalalert.model;
 
 public enum UserRole {
-    PATIENT, DOCTOR, NURSE, ADMIN
+    PATIENT, DOCTOR, NURSE, ADMIN, HOSPITAL_ADMIN
 }

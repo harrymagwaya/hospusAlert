@@ -1,22 +1,23 @@
 package com.shanalert.hospitalalert.entity;
 
-import com.shanalert.hospitalalert.model.DoctorStatus;
-import com.shanalert.hospitalalert.model.MedicalSpecialty;
-import com.shanalert.hospitalalert.model.UserRole;
+import com.shanalert.hospitalalert.model.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-@Builder
+@SuperBuilder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class Doctor {
+public class Doctor extends Auditable {
     @Id
     @Column(name = "user_id", updatable = false, nullable = false)
     private UUID id;
@@ -31,6 +32,8 @@ public class Doctor {
     // --- Basic Identity Fields ---
     private String firstName;
     private String lastName;
+
+    private Gender gender;
 
     @Column(length = 15)
     private String phoneNumber; // Critical for emergency SMS/Calls
@@ -51,10 +54,13 @@ public class Doctor {
     private Integer yearsOfExperience;
 
 
-    private UUID hospitalId; // Links to the Hospital entity
+//    private UUID hospitalId; // Links to the Hospital entity
+
+
 
     private String department; // e.g., "Accident & Emergency (A&E)"
 
+    @Builder.Default
     // --- Operational Status (Triage Logic) ---
     private Boolean isAvailable = true; // Can they accept a new patient right now?
 
@@ -64,5 +70,14 @@ public class Doctor {
     // --- Emergency Preferences ---
     private Boolean handlesTrauma;
     private Boolean handlesPediatrics;
+
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "doctor_hospitals",
+            joinColumns = @JoinColumn(name = "doctor_id"),
+            inverseJoinColumns = @JoinColumn(name = "hospital_id")
+    )
+    private List<Hospital> hospitals = new ArrayList<>();
 
 }
