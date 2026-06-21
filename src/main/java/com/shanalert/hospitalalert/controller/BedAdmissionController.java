@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,5 +47,12 @@ public class BedAdmissionController {
                 @AuthenticationPrincipal UUID actorId) {
             return admissionService.discharge(id, actorId);
         }
+
+    @GetMapping("/hospital/{hospitalId}")
+    public List<BedAdmission> getAdmissionsByHospital(
+            @PathVariable UUID hospitalId
+    ) {
+        return admissionService.getAdmissionsByHospital(hospitalId);
+    }
     }
 

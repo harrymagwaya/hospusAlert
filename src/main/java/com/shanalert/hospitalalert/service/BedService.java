@@ -252,22 +252,22 @@ public class BedService {
         }
 
         boolean allowed = switch (hospital.getFacilityLevel()) {
-            case HC_II -> bedType == BedType.GENERAL;
+            case HC_II -> bedType == BedType.GENERAL_WARD;
 
-            case HC_III -> bedType == BedType.GENERAL
+            case HC_III -> bedType == BedType.GENERAL_WARD
                     || bedType == BedType.MATERNITY;
 
-            case HC_IV -> bedType == BedType.GENERAL
+            case HC_IV -> bedType == BedType.GENERAL_WARD
                     || bedType == BedType.MATERNITY
                     || bedType == BedType.EMERGENCY;
 
-            case GENERAL_HOSPITAL -> bedType == BedType.GENERAL
+            case GENERAL_HOSPITAL -> bedType == BedType.GENERAL_WARD
                     || bedType == BedType.MATERNITY
                     || bedType == BedType.EMERGENCY
                     || bedType == BedType.SURGERY
                     || bedType == BedType.ICU;
 
-            case REGIONAL_REFERRAL_HOSPITAL -> bedType == BedType.GENERAL
+            case REGIONAL_REFERRAL_HOSPITAL -> bedType == BedType.GENERAL_WARD
                     || bedType == BedType.MATERNITY
                     || bedType == BedType.EMERGENCY
                     || bedType == BedType.SURGERY

@@ -82,4 +82,13 @@ public class HospitalAdminController {
     ) {
         return hospitalAdminService.belongsToHospital(adminId, hospitalId);
     }
+
+    @DeleteMapping("/{adminId}/hospital/{hospitalId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void unlinkFromHospital(
+            @PathVariable UUID adminId,
+            @PathVariable UUID hospitalId
+    ) {
+        hospitalAdminService.unlinkAdminFromHospital(adminId, hospitalId);
+    }
 }

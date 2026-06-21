@@ -321,11 +321,6 @@ public class HospitalService {
                 .status(hospital.getStatus())
                 .ownershipType(hospital.getOwnershipType())
                 .facilityLevel(hospital.getFacilityLevel())
-                .beds(hospital.getBeds() != null
-                        ? hospital.getBeds().stream()
-                        .map(bed -> bedMapper.toDto(bed, "Mapped from Hospital"))
-                        .toList()
-                        : List.of())
                 .city(hospital.getAddress() != null ? hospital.getAddress().getCity() : "Unknown")
                 .isEmergencyReady(hospital.getIsEmergencyReady())
                 .build();

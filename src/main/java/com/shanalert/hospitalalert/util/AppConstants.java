@@ -13,4 +13,5 @@ public final class AppConstants {
     // While you're at it, these might be useful for your Hospital APP
     public static final String DEFAULT_PAGE_NUMBER = "0";
     public static final String DEFAULT_PAGE_SIZE = "20";
+    public static final String APP_NAME = "X-APP";
 }

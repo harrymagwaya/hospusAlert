@@ -1,5 +1,6 @@
 package com.shanalert.hospitalalert.service;
 
+import com.shanalert.hospitalalert.advice.ResourceNotFoundException;
 import com.shanalert.hospitalalert.dto.HospitalAdminUpdateDto;
 import com.shanalert.hospitalalert.entity.Hospital;
 import com.shanalert.hospitalalert.entity.HospitalAdmin;
@@ -176,6 +177,24 @@ public class HospitalAdminService {
         if (!belongsToHospital) {
             throw new IllegalStateException("Hospital admin does not belong to this hospital");
         }
+    }
+
+    @Transactional
+    public void unlinkAdminFromHospital(UUID adminId, UUID hospitalId) {
+        HospitalAdmin admin = hospitalAdminRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hospital admin not found with id: " + adminId));
+
+        if (admin.getHospital() == null) {
+            throw new IllegalStateException("Hospital admin is not linked to any hospital");
+        }
+
+        if (!admin.getHospital().getId().equals(hospitalId)) {
+            throw new IllegalStateException("Hospital admin is not linked to this hospital");
+        }
+
+        admin.setHospital(null);
+
+        hospitalAdminRepository.save(admin);
     }
 
     private void syncUserFields(HospitalAdmin hospitalAdmin, User user) {

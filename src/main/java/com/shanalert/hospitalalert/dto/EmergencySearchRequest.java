@@ -1,14 +1,13 @@
 package com.shanalert.hospitalalert.dto;
 
-import com.shanalert.hospitalalert.model.BedType;
+import com.shanalert.hospitalalert.model.EmergencyType;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
-public record EmergencyAlertRequest(
+public record EmergencySearchRequest(
         @NotNull UUID patientId,
-        @NotNull UUID hospitalId,
-        @NotNull BedType requestedBedType,
+        @NotNull EmergencyType emergencyType,
         @NotNull Double patientLat,
         @NotNull Double patientLng,
         String patientNotes
