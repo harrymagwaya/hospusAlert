@@ -17,7 +17,7 @@ public class HospitalResponse {
     private String name;
     private String licenseNumber;
     private HospitalStatus status;
-    private List<BedResponse> beds;
+//    private List<BedResponse> beds;
     private OwnershipType ownershipType;
     private FacilityLevel facilityLevel;
     private String city; // Flattened from the Address entity

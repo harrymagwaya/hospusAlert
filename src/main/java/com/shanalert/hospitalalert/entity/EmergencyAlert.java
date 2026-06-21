@@ -25,7 +25,7 @@ public class EmergencyAlert extends Auditable {
     @Column(name = "patient_id", nullable = false)
     private UUID patientId;
 
-    @Column(name = "hospital_id", nullable = false)
+    @Column(name = "hospital_id", nullable = true)
     private UUID hospitalId;
 
     @Enumerated(EnumType.STRING)
@@ -45,6 +45,12 @@ public class EmergencyAlert extends Auditable {
      * DISTANCE_FALLBACK
      */
     private String etaSource;
+
+    @Column(nullable = false)
+    private Double patientLat;
+
+    @Column(nullable = false)
+    private Double patientLng;
 
     @Column(columnDefinition = "TEXT")
     private String patientNotes;

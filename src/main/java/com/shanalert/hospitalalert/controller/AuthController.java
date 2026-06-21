@@ -5,6 +5,7 @@ import com.shanalert.hospitalalert.dto.LoginRequest;
 import com.shanalert.hospitalalert.dto.SecurityResetRequest;
 import com.shanalert.hospitalalert.model.HospusAPP;
 import com.shanalert.hospitalalert.service.AuthService;
+import com.shanalert.hospitalalert.util.AppConstants;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public AuthResponse login(@RequestBody LoginRequest request, @RequestParam HospusAPP app) {
+    public AuthResponse login(@RequestBody LoginRequest request,   @RequestHeader(AppConstants.APP_NAME) HospusAPP app) {
         return authService.login(request, app);
     }
 

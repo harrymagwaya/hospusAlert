@@ -78,9 +78,11 @@ public class HospitalController {
     }
 
     @DeleteMapping("/{hospitalId}/beds/{bedId}/remove")
-    private void deleteHospitalBed(@PathVariable UUID hospitalId, @PathVariable UUID bedId){
+    public void deleteHospitalBed(
+            @PathVariable UUID hospitalId,
+            @PathVariable UUID bedId
+    ) {
         hospitalService.removeBedFromHospital(hospitalId, bedId);
     }
-
 
 }

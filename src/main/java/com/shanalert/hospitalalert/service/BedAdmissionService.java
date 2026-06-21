@@ -188,4 +188,9 @@ public class BedAdmissionService {
             default -> throw new IllegalStateException("You are not allowed to view admitted patients");
         }
     }
+
+    @Transactional(readOnly = true)
+    public List<BedAdmission> getAdmissionsByHospital(UUID hospitalId) {
+        return admissionRepository.findByHospitalId(hospitalId);
+    }
 }
